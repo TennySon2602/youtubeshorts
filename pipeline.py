@@ -346,9 +346,15 @@ def main():
     print("🚀 AUTOMATED VIRAL SHORTS PIPELINE")
     print("==================================================")
 
-    # 1. Topic Selection (Rotate daily or pick based on day of month)
-    day_idx = int(time.strftime("%d")) % len(TOPICS)
-    topic = TOPICS[day_idx]
+    # 1. Topic Selection (Rotate daily or pick via env var TOPIC_ID)
+    topic_id_env = os.environ.get("TOPIC_ID")
+    if topic_id_env:
+        topic = next((t for t in TOPICS if t["id"] == topic_id_env), None)
+        if not topic:
+            raise ValueError(f"Unknown topic: {topic_id_env}")
+    else:
+        day_idx = int(time.strftime("%d")) % len(TOPICS)
+        topic = TOPICS[day_idx]
     print(f"[Topic] ID: {topic['id']}")
     print(f"[Topic] Title: {topic['title']}")
     print(f"[Topic] Scenes: {len(topic['scenes'])} sentences")
@@ -380,17 +386,20 @@ def main():
     )
 
     # 5. YouTube Upload (DEFAULT: PUBLIC)
-    privacy = os.environ.get("UPLOAD_PRIVACY", "public")
-    print(f"\n[Upload] Publishing to YouTube (privacy='{privacy}')...")
-    
-    from youtube_uploader import upload_video
-    upload_video(
-        file_path=str(final_video),
-        title=topic["title"],
-        description=topic["description"],
-        tags=topic["tags"],
-        privacy_status=privacy
-    )
+    if os.environ.get("SKIP_UPLOAD") == "1":
+        print("\n[Upload] SKIP_UPLOAD=1 detected. Skipping YouTube upload.")
+    else:
+        privacy = os.environ.get("UPLOAD_PRIVACY", "public")
+        print(f"\n[Upload] Publishing to YouTube (privacy='{privacy}')...")
+        
+        from youtube_uploader import upload_video
+        upload_video(
+            file_path=str(final_video),
+            title=topic["title"],
+            description=topic["description"],
+            tags=topic["tags"],
+            privacy_status=privacy
+        )
     print("\n==================================================")
     print("✨ ALL STEPS FINISHED SUCCESSFULLY!")
     print("==================================================")
