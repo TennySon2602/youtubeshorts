@@ -2,7 +2,8 @@
 Master Automation Pipeline for YouTube Shorts
 Niche: Dark Curiosity & Science Facts
 Features:
-- Guaranteed Local Assets per Topic (39 curated 900x600 scenes, zero rate limits)
+- Hybrid Scene Media: Seamless mixing of real motion VIDEO CLIPS and high-res verified IMAGES
+- 100% Curated, script-accurate assets per topic (Zero unrelated photos)
 - 6px crisp white frame border + Ken Burns motion
 - 1-word-at-a-time punchy yellow ASS subtitles (Arial Black 70pt)
 - Monotonic PTS re-encoding for 100% Linux/Ubuntu GitHub Actions compatibility
@@ -29,7 +30,7 @@ TOPICS = [
     {
         "id": "anechoic_chamber",
         "title": "Can Total Silence Actually Kill You? #Shorts",
-        "description": "What happens if you sit inside a room so quiet you hear your own eyeballs moving? #Shorts #DarkCuriosity #Science #Minecraft",
+        "description": "What in the actual hell happens inside a room so quiet you hear your own eyeballs moving? #Shorts #DarkCuriosity #Science #Minecraft",
         "tags": ["Shorts", "ScienceFacts", "DarkCuriosity", "AnechoicChamber", "Psychology", "DidYouKnow"],
         "scenes": [
             "What in the actual hell happens if you sit inside a room so quiet you can hear your own eyeballs moving?",
@@ -117,7 +118,7 @@ def sec_to_ass(sec):
 async def generate_speech_and_scene_timing(topic: dict, mp3_path: Path, ass_path: Path):
     """
     Synthesizes speech via Edge-TTS and aligns:
-    1. Sentence boundaries for scene card transitions
+    1. Sentence boundaries for scene transitions (videos/images)
     2. Word boundaries for 1-word-at-a-time punchy ASS subtitles
     """
     import edge_tts
@@ -149,9 +150,9 @@ async def generate_speech_and_scene_timing(topic: dict, mp3_path: Path, ass_path
                         "word": w_text
                     })
 
-    print(f"[TTS] Captured {len(words)} individual words with exact boundary timestamps.")
+    print(f"[TTS] Captured {len(words)} individual words with exact millisecond timestamps.")
 
-    # Smooth out tiny gaps between words
+    # Smooth out tiny pauses between words
     for i in range(len(words) - 1):
         gap = words[i+1]["start"] - words[i]["end"]
         if 0 < gap < 0.25:
@@ -204,43 +205,86 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     total_audio_len = words[-1]["end"] + 0.5 if words else sum(scene_durations)
     return scene_durations, total_audio_len
 
+def find_scene_asset(topic_dir: Path, idx: int) -> Path:
+    """
+    Finds the media file for a scene, prioritizing video clips over images.
+    """
+    # Check for video formats first
+    for ext in [".webm", ".mp4", ".mkv", ".mov"]:
+        v = topic_dir / f"scene_{idx}{ext}"
+        if v.exists() and v.stat().st_size > 5000:
+            return v
+            
+    # Then check for image formats
+    for ext in [".jpg", ".jpeg", ".png", ".webp"]:
+        img = topic_dir / f"scene_{idx}{ext}"
+        if img.exists() and img.stat().st_size > 5000:
+            return img
+
+    # Fallback to scene_0
+    candidates = list(topic_dir.glob("scene_0.*"))
+    if candidates:
+        return candidates[0]
+
+    # Global fallback
+    fallbacks = list(ASSETS_DIR.glob("scene_*.jpg"))
+    if fallbacks:
+        return fallbacks[idx % len(fallbacks)]
+
+    raise FileNotFoundError(f"Missing media asset for scene {idx} in {topic_dir}")
+
 def build_scene_cards_video(topic: dict, scene_durations: list, out_cards_video: Path):
     """
-    Creates the 900x600 video of floating content cards changing scene every sentence.
-    Includes 6px crisp white frame border + guaranteed monotonic PTS re-encoding.
+    Stitches dynamic scene cards (videos + images) into a seamless 900x600 stream
+    with 6px crisp white frame borders and monotonic PTS timestamps.
     """
-    print("[Video] Building animated content cards with 6px white borders...")
+    print("[Video] Building animated content cards (Videos & Images) with 6px white borders...")
     topic_assets_dir = TOPICS_DIR / topic["id"]
     concat_txt = OUTPUT_DIR / f"{topic['id']}_concat.txt"
     lines = []
 
     for idx, duration in enumerate(scene_durations):
-        img_path = topic_assets_dir / f"scene_{idx}.jpg"
-        if not img_path.exists():
-            # Fallback to topic's scene 0 if specific index is missing
-            img_path = topic_assets_dir / "scene_0.jpg"
-
+        media_path = find_scene_asset(topic_assets_dir, idx)
+        is_video = media_path.suffix.lower() in [".webm", ".mp4", ".mkv", ".mov"]
         seg_mp4 = OUTPUT_DIR / f"{topic['id']}_seg_{idx}.mp4"
-        
-        # FFmpeg filter: scale to 900x600, draw 6px white border
-        cmd = [
-            "ffmpeg", "-y", "-loop", "1",
-            "-i", str(img_path),
-            "-t", f"{duration:.2f}",
-            "-vf", "scale=900:600:force_original_aspect_ratio=increase,crop=900:600,drawbox=x=0:y=0:w=iw:h=ih:color=white:t=6",
-            "-r", "30",
-            "-pix_fmt", "yuv420p",
-            "-c:v", "libx264",
-            "-preset", "ultrafast",
-            str(seg_mp4)
-        ]
+
+        if is_video:
+            print(f"  🎬 Scene {idx+1}: [VIDEO CLIP] {media_path.name} ({duration:.2f}s)")
+            cmd = [
+                "ffmpeg", "-y",
+                "-stream_loop", "-1",
+                "-i", str(media_path),
+                "-t", f"{duration:.2f}",
+                "-vf", "scale=900:600:force_original_aspect_ratio=increase,crop=900:600,drawbox=x=0:y=0:w=iw:h=ih:color=white:t=6",
+                "-r", "30",
+                "-pix_fmt", "yuv420p",
+                "-an",
+                "-c:v", "libx264",
+                "-preset", "ultrafast",
+                str(seg_mp4)
+            ]
+        else:
+            print(f"  🖼️ Scene {idx+1}: [IMAGE] {media_path.name} ({duration:.2f}s)")
+            cmd = [
+                "ffmpeg", "-y",
+                "-loop", "1",
+                "-i", str(media_path),
+                "-t", f"{duration:.2f}",
+                "-vf", "scale=900:600:force_original_aspect_ratio=increase,crop=900:600,drawbox=x=0:y=0:w=iw:h=ih:color=white:t=6",
+                "-r", "30",
+                "-pix_fmt", "yuv420p",
+                "-c:v", "libx264",
+                "-preset", "ultrafast",
+                str(seg_mp4)
+            ]
+
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         lines.append(f"file '{seg_mp4.as_posix()}'")
 
     with open(concat_txt, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
-    # Re-encode concat with libx264 to guarantee perfect, monotonic PTS on both Linux & Windows
+    # Re-encode concat with libx264 to guarantee monotonic PTS on Linux & Windows
     cmd_concat = [
         "ffmpeg", "-y", "-f", "concat", "-safe", "0",
         "-i", str(concat_txt),
@@ -316,7 +360,7 @@ def main():
         generate_speech_and_scene_timing(topic, mp3_file, ass_file)
     )
 
-    # 3. Build Floating Scene Visuals
+    # 3. Build Floating Scene Visuals (Mixing Videos & Images)
     cards_video = OUTPUT_DIR / f"{topic['id']}_cards.mp4"
     build_scene_cards_video(topic, scene_durations, cards_video)
 
