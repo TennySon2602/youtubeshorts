@@ -6,17 +6,11 @@ on:
     - cron: '0 12 * * *'
   workflow_dispatch:
     inputs:
-      topic_id:
-        description: 'Topic ID to generate (leave empty for daily auto-rotation)'
+      topic_query:
+        description: 'Gaming Drama Topic (Leave blank for AUTO-DISCOVERY of today latest drama, or type a game name like Roblox, Steam, GTA 6)'
         required: false
-        default: 'dark_and_darker'
-        type: choice
-        options:
-          - 'dark_and_darker'
-          - 'roblox_ports'
-          - 'nintendo_palworld'
-          - 'helldivers_sony'
-          - 'concord_disaster'
+        default: 'auto'
+        type: string
       privacy:
         description: 'YouTube Video Privacy'
         required: true
@@ -58,6 +52,6 @@ jobs:
           YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
           OXION_API_KEY: ${{ secrets.OXION_API_KEY }}
           UPLOAD_PRIVACY: ${{ github.event.inputs.privacy || 'public' }}
-          TOPIC_ID: ${{ github.event.inputs.topic_id }}
+          TOPIC_QUERY: ${{ github.event.inputs.topic_query }}
         run: |
           python pipeline.py

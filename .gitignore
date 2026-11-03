@@ -20,6 +20,7 @@ assets/clip_chamber.mp4.mkv
 output/
 temp/
 *.log
+assets/topics/drama_*/
 
 # OS artifacts
 .DS_Store

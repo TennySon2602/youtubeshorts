@@ -347,13 +347,36 @@ def main():
     print("🚀 AUTOMATED VIRAL SHORTS PIPELINE")
     print("==================================================")
 
-    # 1. Topic Selection (Rotate daily or pick via env var TOPIC_ID)
+    # 1. Topic Selection: Dynamic Live Gaming Drama Discovery vs Pre-baked Library
+    topic = None
+    custom_query = os.environ.get("TOPIC_QUERY") or os.environ.get("TOPIC_SEARCH")
     topic_id_env = os.environ.get("TOPIC_ID")
-    if topic_id_env:
+
+    # Check if a pre-baked topic was explicitly requested
+    if topic_id_env and topic_id_env.lower() != "auto" and not custom_query:
         topic = next((t for t in TOPICS if t["id"] == topic_id_env), None)
-        if not topic:
-            raise ValueError(f"Unknown topic: {topic_id_env}")
-    else:
+
+    # Dynamic Discovery: Hunt for breaking gaming drama from live news feeds
+    if not topic:
+        try:
+            from news_hunter import search_gaming_news
+            from drama_synthesizer import build_dynamic_topic
+
+            search_target = custom_query or (topic_id_env if topic_id_env and topic_id_env.lower() != "auto" else None)
+            print(f"[Pipeline] Hunting for latest breaking gaming drama (Target: '{search_target or 'AUTO-DISCOVERY'}')...")
+            stories = search_gaming_news(custom_query=search_target, limit=5)
+            
+            if stories:
+                breaking = stories[0]
+                print(f"[Pipeline] 🔥 BREAKING GAMING DRAMA FOUND: [{breaking['source']}] {breaking['headline']}")
+                topic = build_dynamic_topic(breaking["headline"], breaking["source"])
+            else:
+                print("[Pipeline] No fresh live stories matched, falling back to pre-baked rotation.")
+        except Exception as e:
+            print(f"[Pipeline] Dynamic discovery error: {e}. Falling back to pre-baked topics.")
+
+    # Final fallback rotation if live feeds are unreachable
+    if not topic:
         day_idx = int(time.strftime("%d")) % len(TOPICS)
         topic = TOPICS[day_idx]
     print(f"[Topic] ID: {topic['id']}")
