@@ -9,14 +9,14 @@ on:
       topic_id:
         description: 'Topic ID to generate (leave empty for daily auto-rotation)'
         required: false
-        default: 'lake_natron'
+        default: 'dark_and_darker'
         type: choice
         options:
-          - 'lake_natron'
-          - 'anechoic_chamber'
-          - 'russian_sleep'
-          - 'boiling_river'
-          - 'spontaneous_combustion'
+          - 'dark_and_darker'
+          - 'roblox_ports'
+          - 'nintendo_palworld'
+          - 'helldivers_sony'
+          - 'concord_disaster'
       privacy:
         description: 'YouTube Video Privacy'
         required: true
