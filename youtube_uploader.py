@@ -70,6 +70,11 @@ def get_authenticated_service():
 
     # 4. If still no valid credentials, run interactive browser flow (Local only)
     if not creds or not creds.valid:
+        if os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"):
+            raise RuntimeError(
+                "[OAuth Error] Token YouTube trong GitHub Secret 'YOUTUBE_TOKEN_JSON' đã hết hạn hoặc bị thu hồi (invalid_grant).\n"
+                "👉 Cách khắc phục: Chạy 'python renew_token.py' (hoặc click renew_token.bat) trên máy tính để lấy token mới, sau đó dán vào GitHub Secret 'YOUTUBE_TOKEN_JSON'."
+            )
         if not CLIENT_SECRETS_FILE.exists():
             raise FileNotFoundError(f"Missing {CLIENT_SECRETS_FILE}. Please place client_secrets.json in project root.")
         
