@@ -13,17 +13,17 @@ CLIENT_SECRETS_FILE = Path(__file__).parent / "client_secrets.json"
 TOKEN_FILE = Path(__file__).parent / "token.json"
 
 def main():
-    print("=" * 60)
-    print("🔑 CÔNG CỤ TẠO LẠI YOUTUBE OAUTH TOKEN (RENEW TOKEN)")
-    print("=" * 60)
+    print("=" * 60, flush=True)
+    print("🔑 CÔNG CỤ TẠO LẠI YOUTUBE OAUTH TOKEN (RENEW TOKEN)", flush=True)
+    print("=" * 60, flush=True)
     
     if not CLIENT_SECRETS_FILE.exists():
-        print(f"❌ Lỗi: Không tìm thấy {CLIENT_SECRETS_FILE.name}!")
+        print(f"❌ Lỗi: Không tìm thấy {CLIENT_SECRETS_FILE.name}!", flush=True)
         return
 
-    print("\n[1/3] Đang khởi động trình duyệt để đăng nhập tài khoản YouTube...")
-    print("👉 Hãy đăng nhập và chọn 'Cho phép' (Allow) trên trình duyệt.")
-    print("👉 Nếu gặp thông báo 'Google hasn't verified this app', bấm 'Advanced' -> 'Go to... (unsafe)'.\n")
+    print("\n[1/3] Đang khởi động trình duyệt để đăng nhập tài khoản YouTube...", flush=True)
+    print("👉 Hãy đăng nhập và chọn 'Cho phép' (Allow) trên trình duyệt.", flush=True)
+    print("👉 Nếu gặp thông báo 'Google hasn't verified this app', bấm 'Advanced' -> 'Go to... (unsafe)'.\n", flush=True)
 
     flow = InstalledAppFlow.from_client_secrets_file(
         str(CLIENT_SECRETS_FILE),
