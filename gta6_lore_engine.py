@@ -15,18 +15,18 @@ GTAVI_DIR.mkdir(parents=True, exist_ok=True)
 GTA6_LORE_TOPICS = [
     {
         "id": "lucia_ankle_monitor",
-        "badge": "🚨 GTA VI SECRET",
+        "badge": "[ GTA VI SECRET ]",
         "title": "The Dark Secret Behind Lucia's Ankle Monitor... 🤯 #Shorts",
         "hook_header": "LUCIA'S HIDDEN STORYLINE REVEALED",
-        "description": "Rockstar hid a dark secret in GTA 6's trailer that reveals the entire storyline! How Lucia's probation ankle monitor traps her in Vice City until Jason helps her break free. #GTA6 #Shorts #GrandTheftAuto6 #RockstarGames #Gaming #ViceCity #GTA6Leaks",
+        "description": "Rockstar hid a dark secret in GTA 6's trailer that reveals the entire storyline! How Lucia's probation ankle monitor traps her in Vice City until Jason helps her break free. Subscribe for daily GTA 6 leaks! #GTA6 #Shorts #GrandTheftAuto6 #RockstarGames #Gaming #ViceCity #GTA6Leaks",
         "tags": ["Shorts", "GTA6", "GrandTheftAuto6", "GTA6Leaks", "RockstarGames", "Gaming", "ViceCity", "Lucia", "Jason", "GTAVI"],
         "scenes": [
             "Rockstar hid a dark storyline detail in GTA 6 that almost everyone completely missed.",
             "In the official trailer, Lucia is seen wearing an active police GPS ankle monitor.",
             "This confirms Lucia starts the story on strict probation, locking her to Vice City until Jason helps her disable it.",
             "Leaked files reveal that cutting this ankle monitor triggers an instant three-star manhunt across Leonida.",
-            "This dynamic forces players to plan their crimes carefully, redefining open-world freedom forever.",
-            "Do you think Lucia is using Jason, or is their love genuine? Drop your hot take below and subscribe for more GTA 6 lore!"
+            "This dynamic forces players to plan their crimes carefully, completely redefining open-world freedom.",
+            "Which explains the chilling reason why..."
         ],
         "clip_timestamps": [
             (2.0, 7.0),    # Lucia in prison uniform
@@ -39,18 +39,18 @@ GTA6_LORE_TOPICS = [
     },
     {
         "id": "leonida_map_scale",
-        "badge": "🗺️ MAP ANALYSIS",
+        "badge": "[ MAP SCALE ANALYSIS ]",
         "title": "Why GTA 6's Map Destroys GTA 5 & Red Dead 2... 🗺️ #Shorts",
         "hook_header": "LEONIDA MAP SCALE IS TERRIFYING",
-        "description": "Leaked mapping projects prove GTA 6's state of Leonida is 3 times bigger than Los Santos! Full breakdown of Vice City, the Everglades swamps, and islands. #GTA6 #Shorts #GrandTheftAuto6 #GTA6Map #Gaming #ViceCity",
+        "description": "Leaked mapping projects prove GTA 6's state of Leonida is 3 times bigger than Los Santos! Full breakdown of Vice City, the Everglades swamps, and islands. Subscribe for more! #GTA6 #Shorts #GrandTheftAuto6 #GTA6Map #Gaming #ViceCity",
         "tags": ["Shorts", "GTA6", "GrandTheftAuto6", "GTA6Map", "RockstarGames", "Gaming", "ViceCity", "Leonida", "RDR2", "GTAVI"],
         "scenes": [
             "Leaked coordinates prove GTA 6's map of Leonida is over three times bigger than Los Santos.",
             "Leonida features three massive metropolitan cities and over a hundred fully enterable tropical islands.",
             "The Florida Everglades swamp region alone is larger than the entire Red Dead Redemption 2 world map.",
             "Rockstar engineered dynamic tropical storm physics that can flood entire highways and neighborhoods in real time.",
-            "With over seventy percent of buildings having enterable interiors, the exploration potential is limitless.",
-            "Which city in Leonida will you explore first? Drop a comment and subscribe before GTA 6 drops!"
+            "With over seventy percent of buildings having fully enterable interiors, the exploration scale is terrifying.",
+            "And you won't believe the data showing how..."
         ],
         "clip_timestamps": [
             (12.0, 17.0),  # Vice City aerial skyline
@@ -63,18 +63,18 @@ GTA6_LORE_TOPICS = [
     },
     {
         "id": "police_ai_system",
-        "badge": "🚨 COP AI LEAK",
+        "badge": "[ 5-STAR WANTED LEAK ]",
         "title": "Rockstar's Frightening New Police AI in GTA 6 🚨 #Shorts",
         "hook_header": "5-STAR WANTED LEVEL WILL BREAK YOU",
-        "description": "Getting a 5-star wanted level in GTA 6 won't be like anything you've seen before. Police remember license plates, scan CCTV, and deploy tactical SWAT units. #GTA6 #Shorts #GrandTheftAuto6 #GTA6Police #Gaming #ViceCity",
+        "description": "Getting a 5-star wanted level in GTA 6 won't be like anything you've seen before. Police remember license plates, scan CCTV, and deploy tactical SWAT units. Subscribe for daily GTA 6 leaks! #GTA6 #Shorts #GrandTheftAuto6 #GTA6Police #Gaming #ViceCity",
         "tags": ["Shorts", "GTA6", "GrandTheftAuto6", "GTA6Police", "RockstarGames", "Gaming", "ViceCity", "WantedLevel", "GTAVI"],
         "scenes": [
             "Getting a five-star wanted level in GTA 6 won't be like anything you have ever seen before.",
             "Rockstar completely rebuilt the police artificial intelligence from the ground up.",
             "Cops no longer spawn out of thin air behind you; they dispatch from real police precincts and coordinate tactical roadblocks.",
             "If you escape, police will remember your vehicle's license plate and scan surveillance cameras across Vice City.",
-            "K9 units and tactical bodycam SWAT squads will hunt you through dense alleyways and swamplands.",
-            "Can you survive a five-star wanted level in GTA 6? Subscribe for more exclusive leaks and lore!"
+            "K9 tracking units and tactical bodycam SWAT squads will hunt you through dense alleyways and swamplands.",
+            "Giving players virtually zero chance of survival, which is why..."
         ],
         "clip_timestamps": [
             (58.0, 63.0),  # Police bodycam footage raid
@@ -87,18 +87,18 @@ GTA6_LORE_TOPICS = [
     },
     {
         "id": "social_media_mechanic",
-        "badge": "📱 VIRAL CRIME",
+        "badge": "[ VIRAL CRIME FEATURE ]",
         "title": "The GTA 6 Social Media Feature Nobody Is Talking About 📱 #Shorts",
         "hook_header": "IN-GAME TIKTOK CHANGES EVERYTHING",
-        "description": "GTA 6's in-game social media isn't just a funny parody; it's a core crime mechanic where NPCs livestream your robberies to millions! #GTA6 #Shorts #GrandTheftAuto6 #RockstarGames #Gaming #ViceCity",
+        "description": "GTA 6's in-game social media isn't just a funny parody; it's a core crime mechanic where NPCs livestream your robberies to millions! Subscribe for more! #GTA6 #Shorts #GrandTheftAuto6 #RockstarGames #Gaming #ViceCity",
         "tags": ["Shorts", "GTA6", "GrandTheftAuto6", "RockstarGames", "Gaming", "ViceCity", "TikTok", "SocialMedia", "GTAVI"],
         "scenes": [
             "GTA 6's in-game TikTok isn't just a parody; it is a game-changing crime mechanic.",
             "In Leonida, every single NPC carries a smartphone with a fully functional in-game social media app.",
             "If you commit a crime in public, bystanders will whip out their phones and livestream you to millions of virtual followers.",
             "Going viral increases your notoriety, causing bounty hunters and rival cartel members to track your exact location.",
-            "You can even use viral livestreams to scout security guards and plan high-stakes heists.",
-            "Is this Rockstar's greatest innovation yet? Drop a comment below and subscribe for more GTA 6 secrets!"
+            "You can even hijack viral livestreams to scout security guards and plan high-stakes heists.",
+            "Completely changing open-world crime forever, and proving that..."
         ],
         "clip_timestamps": [
             (41.0, 45.0),  # Rooftop livestream girl
@@ -111,10 +111,10 @@ GTA6_LORE_TOPICS = [
     },
     {
         "id": "bonnie_clyde_tragedy",
-        "badge": "💀 TRAGIC LORE",
+        "badge": "[ TRAGIC STORY LORE ]",
         "title": "The Tragic Betrayal Ending Leaked for GTA 6... 💔 #Shorts",
         "hook_header": "JASON & LUCIA'S FATAL DESTINY",
-        "description": "The tragic Bonnie and Clyde ending hidden in GTA 6's dialogue. Will Jason betray Lucia, or will Lucia leave him behind? #GTA6 #Shorts #GrandTheftAuto6 #RockstarGames #Gaming #ViceCity #GTA6Story",
+        "description": "The tragic Bonnie and Clyde ending hidden in GTA 6's dialogue. Will Jason betray Lucia, or will Lucia leave him behind? Subscribe for daily GTA 6 lore! #GTA6 #Shorts #GrandTheftAuto6 #RockstarGames #Gaming #ViceCity #GTA6Story",
         "tags": ["Shorts", "GTA6", "GrandTheftAuto6", "GTA6Story", "RockstarGames", "Gaming", "ViceCity", "Lucia", "Jason", "GTAVI"],
         "scenes": [
             "The biggest fan theory about Jason and Lucia might actually be a hundred percent true.",
@@ -122,7 +122,7 @@ GTA6_LORE_TOPICS = [
             "In real history, Bonnie and Clyde met a gruesome end in an ambush, and GTA 6's dialogue drops chilling hints.",
             "Notice how in the trailer, Lucia is the dominant leader while Jason hesitates before answering 'Trust'.",
             "Insiders suggest the final mission will force players to choose between saving their partner or walking away with the loot.",
-            "Who would you sacrifice at the end of GTA 6? Jason or Lucia? Subscribe and let me know below!"
+            "Making everyone terrified that..."
         ],
         "clip_timestamps": [
             (73.0, 77.0),  # Jason and Lucia driving convertible
@@ -135,10 +135,10 @@ GTA6_LORE_TOPICS = [
     },
     {
         "id": "physics_and_details",
-        "badge": "⚡ NEXT-GEN PHYSICS",
+        "badge": "[ NEXT-GEN PHYSICS ]",
         "title": "Rockstar's Insane Next-Gen Physics in GTA 6... 🤯 #Shorts",
         "hook_header": "GRAPHICS DETAILS THAT WILL BLOW YOUR MIND",
-        "description": "The level of detail Rockstar put into GTA 6's physics and graphics is genuinely mind-blowing! Water simulation, car deformation, and NPC emotional AI. #GTA6 #Shorts #GrandTheftAuto6 #RockstarGames #Gaming #ViceCity",
+        "description": "The level of detail Rockstar put into GTA 6's physics and graphics is genuinely mind-blowing! Water simulation, car deformation, and NPC emotional AI. Subscribe for more! #GTA6 #Shorts #GrandTheftAuto6 #RockstarGames #Gaming #ViceCity",
         "tags": ["Shorts", "GTA6", "GrandTheftAuto6", "GTA6Physics", "RockstarGames", "Gaming", "ViceCity", "NextGen", "GTAVI"],
         "scenes": [
             "The level of detail Rockstar put into GTA 6's physics is genuinely mind-blowing.",
@@ -146,7 +146,7 @@ GTA6_LORE_TOPICS = [
             "Every single vehicle has individual suspension travel, tire pressure deformation, and modular interior damage.",
             "NPCs have realistic weight distribution, reacting to wind gusts, humidity, and weapon recoil with lifelike emotion.",
             "The dynamic hair and cloth physics alone required custom proprietary rendering patents.",
-            "Will any game ever match GTA 6's realism? Subscribe for more cutting-edge gaming breakdowns!"
+            "Proving beyond any doubt that..."
         ],
         "clip_timestamps": [
             (15.0, 20.0),  # Speedboats and ocean wake

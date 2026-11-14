@@ -63,17 +63,18 @@ def ensure_source_footage() -> Path:
     print(f"[GTA6 Clipper] Downloaded source video via yt-dlp: {SOURCE_VIDEO} ({SOURCE_VIDEO.stat().st_size // 1024 // 1024}MB)")
     return SOURCE_VIDEO
 
-def clip_scene_segment(source_path: Path, start_sec: float, duration: float, out_path: Path, hook_header: str = "GTA VI DEEP LORE"):
+def clip_scene_segment(source_path: Path, start_sec: float, duration: float, out_path: Path, hook_header: str = "GTA VI DEEP LORE", badge: str = "🚨 BREAKING LEAK", is_first_scene: bool = False):
     """
     Renders a single scene segment into vertical 1080x1920:
     - Ambient blurred gameplay background (1080x1920, boxblur=25:5)
     - Center uncropped 16:9 gameplay footage (1020x574) with glowing 4px cyan border
-    - Top hook banner
+    - Top hook banner (with high-voltage badge on first scene)
     """
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Clean text for FFmpeg drawtext
     clean_hook = hook_header.replace("'", "").replace(":", "-").upper()
+    clean_badge = badge.replace("'", "").replace(":", "-").upper()
     
     # Font path for banner
     font_file = FONTS_DIR / "segoeuib.ttf"
@@ -81,18 +82,33 @@ def clip_scene_segment(source_path: Path, start_sec: float, duration: float, out
         font_file = FONTS_DIR / "arialbd.ttf"
     font_clean = str(font_file).replace("\\", "/").replace(":", "\\:") if font_file.exists() else "Arial"
 
-    filter_complex = (
-        f"[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=25:5[bg];"
-        f"[0:v]scale=1020:574,drawbox=x=0:y=0:w=iw:h=ih:color=0x00FFCC:t=4[fg];"
-        f"[bg][fg]overlay=30:520[v_composed];"
-        # Top banner background bar
-        f"[v_composed]drawbox=x=40:y=240:w=1000:h=130:color=0x0F172A@0.9:t=fill,"
+    # Base filters
+    filter_parts = [
+        "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=25:5[bg]",
+        "[0:v]scale=1020:574,drawbox=x=0:y=0:w=iw:h=ih:color=0x00FFCC:t=4[fg]",
+        "[bg][fg]overlay=30:520[v_composed]"
+    ]
+
+    current_v = "v_composed"
+
+    # If first scene (Hook scene), draw high-impact badge above the banner
+    if is_first_scene:
+        filter_parts.append(
+            f"[{current_v}]drawbox=x=290:y=165:w=500:h=60:color=0xE11D48@0.95:t=fill,"
+            f"drawbox=x=290:y=165:w=500:h=60:color=0xFFFFFF:t=2,"
+            f"drawtext=fontfile='{font_clean}':text='{clean_badge}':fontcolor=0xFFFFFF:fontsize=28:x=(w-text_w)/2:y=180[v_badge]"
+        )
+        current_v = "v_badge"
+
+    # Top banner background bar + Cyan Border
+    filter_parts.append(
+        f"[{current_v}]drawbox=x=40:y=240:w=1000:h=130:color=0x0F172A@0.92:t=fill,"
         f"drawbox=x=40:y=240:w=1000:h=130:color=0x00FFCC:t=3,"
-        # Top tag: GTA VI • EXCLUSIVE BREAKDOWN
-        f"drawtext=fontfile='{font_clean}':text='GTA VI  *  EXCLUSIVE LORE BREAKDOWN':fontcolor=0x00FFCC:fontsize=26:x=(w-text_w)/2:y=265,"
-        # Main hook headline
-        f"drawtext=fontfile='{font_clean}':text='{clean_hook}':fontcolor=0xFFFFFF:fontsize=40:x=(w-text_w)/2:y=310[outv]"
+        f"drawtext=fontfile='{font_clean}':text='GTA VI  *  EXCLUSIVE LORE BREAKDOWN':fontcolor=0x00FFCC:fontsize=24:x=(w-text_w)/2:y=262,"
+        f"drawtext=fontfile='{font_clean}':text='{clean_hook}':fontcolor=0xFFFFFF:fontsize=38:x=(w-text_w)/2:y=305[outv]"
     )
+
+    filter_complex = ";".join(filter_parts)
 
     cmd = [
         "ffmpeg", "-y",
@@ -117,6 +133,7 @@ def build_gta6_scene_clips(topic: dict, scene_durations: list, out_video: Path) 
     source_path = ensure_source_footage()
     clips = topic.get("clip_timestamps", [])
     hook_header = topic.get("hook_header", "GTA VI STORY BREAKDOWN")
+    badge = topic.get("badge", "🚨 GTA VI BREAKDOWN")
 
     concat_txt = OUTPUT_DIR / f"{topic['id']}_concat.txt"
     lines = []
@@ -136,7 +153,9 @@ def build_gta6_scene_clips(topic: dict, scene_durations: list, out_video: Path) 
             start_sec=start_ts,
             duration=dur,
             out_path=seg_file,
-            hook_header=hook_header
+            hook_header=hook_header,
+            badge=badge,
+            is_first_scene=(idx == 0)
         )
         lines.append(f"file '{seg_file.as_posix()}'")
 

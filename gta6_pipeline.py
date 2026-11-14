@@ -27,20 +27,59 @@ from gta6_clipper import build_gta6_scene_clips
 
 def render_gta6_final_short(cards_video: Path, audio_path: Path, ass_path: Path, duration: float, out_video: Path):
     """
-    Composites video stream, audio stream, and burns synchronized word-by-word subtitles.
+    Composites video stream, multi-layer audio stream (Speech + BGM + SFX), and burns synchronized word-by-word subtitles.
     """
     print(f"[GTA6 Compiler] Compositing final video ({duration:.2f}s) to {out_video.name}...")
     ass_clean = str(ass_path).replace("\\", "/").replace(":", "\\:")
 
-    filter_complex = f"[0:v]ass='{ass_clean}'[outv]"
+    bgm_file = ASSETS_DIR / "gtavi" / "gta6_bgm_suspense.mp3"
+    sfx_file = ASSETS_DIR / "gtavi" / "sfx_hook_boom.mp3"
+
+    input_args = [
+        "-i", str(cards_video),   # [0:v]
+        "-i", str(audio_path)     # [1:a] Speech
+    ]
+
+    filter_complex_parts = [
+        f"[0:v]ass='{ass_clean}'[outv]"
+    ]
+
+    audio_mix_inputs = ["[speech]"]
+    filter_complex_parts.append("[1:a]volume=1.0[speech]")
+
+    next_idx = 2
+    if bgm_file.exists():
+        input_args.extend(["-stream_loop", "-1", "-i", str(bgm_file)])
+        filter_complex_parts.append(
+            f"[{next_idx}:a]volume=0.18,afade=t=in:ss=0:d=1.5,afade=t=out:st={max(duration-2.5, 1.0):.2f}:d=2.0[bgm]"
+        )
+        audio_mix_inputs.append("[bgm]")
+        next_idx += 1
+
+    if sfx_file.exists():
+        input_args.extend(["-i", str(sfx_file)])
+        filter_complex_parts.append(
+            f"[{next_idx}:a]volume=0.85[sfx]"
+        )
+        audio_mix_inputs.append("[sfx]")
+        next_idx += 1
+
+    if len(audio_mix_inputs) > 1:
+        mix_inputs_str = "".join(audio_mix_inputs)
+        filter_complex_parts.append(
+            f"{mix_inputs_str}amix=inputs={len(audio_mix_inputs)}:duration=first:normalize=0[mixed_a];"
+            f"[mixed_a]loudnorm=I=-14:LRA=7:tp=-1[outa]"
+        )
+        a_map = "[outa]"
+    else:
+        a_map = "1:a:0"
 
     cmd = [
         "ffmpeg", "-y",
-        "-i", str(cards_video),
-        "-i", str(audio_path),
-        "-filter_complex", filter_complex,
+        *input_args,
+        "-filter_complex", ";".join(filter_complex_parts),
         "-map", "[outv]",
-        "-map", "1:a:0",
+        "-map", a_map,
         "-c:v", "libx264",
         "-preset", "veryfast",
         "-crf", "20",
