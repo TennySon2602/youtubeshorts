@@ -16,32 +16,51 @@ SOURCE_VIDEO = GTAVI_DIR / "source_gta6_trailer.mp4"
 FONTS_DIR = ASSETS_DIR / "fonts"
 
 YOUTUBE_SOURCE_URL = "https://www.youtube.com/watch?v=QdBZY2fkU-0"
+FALLBACK_DIRECT_URL = "https://raw.githubusercontent.com/TennySon2602/youtubeshorts/main/assets/gtavi/source_gta6_trailer.mp4"
 
 def ensure_source_footage() -> Path:
     """
-    Downloads official 1080p Rockstar GTA VI footage if not already cached.
+    Ensures official 1080p Rockstar GTA VI footage is available:
+    1. First checks local assets/gtavi/source_gta6_trailer.mp4 (tracked in Git for instant CI execution).
+    2. Falls back to direct repository mirror via HTTP (bypassing YouTube anti-bot entirely).
+    3. Falls back to yt-dlp as final resort.
     """
     GTAVI_DIR.mkdir(parents=True, exist_ok=True)
     if SOURCE_VIDEO.exists() and SOURCE_VIDEO.stat().st_size > 10_000_000:
+        print(f"[GTA6 Clipper] Using local GTA VI footage: {SOURCE_VIDEO} ({SOURCE_VIDEO.stat().st_size // 1024 // 1024}MB)")
         return SOURCE_VIDEO
 
-    # Check if a copy exists in scratch or cache
-    scratch_copy = Path(r"C:\Users\ASUS\.gemini\antigravity\scratch\gta6_test\gta6_trailer.mp4")
-    if scratch_copy.exists() and scratch_copy.stat().st_size > 10_000_000:
-        import shutil
-        print(f"[GTA6 Clipper] Copying cached trailer from {scratch_copy}...")
-        shutil.copy(scratch_copy, SOURCE_VIDEO)
-        return SOURCE_VIDEO
+    # 2. Try direct mirror download (avoids YouTube datacenter bot detection on CI)
+    import urllib.request
+    try:
+        print(f"[GTA6 Clipper] Local footage missing. Downloading from direct mirror: {FALLBACK_DIRECT_URL}...")
+        headers = {"User-Agent": "Mozilla/5.0"}
+        req = urllib.request.Request(FALLBACK_DIRECT_URL, headers=headers)
+        with urllib.request.urlopen(req, timeout=90) as resp, open(SOURCE_VIDEO, "wb") as out_f:
+            while True:
+                chunk = resp.read(1024 * 512)
+                if not chunk:
+                    break
+                out_f.write(chunk)
+        if SOURCE_VIDEO.exists() and SOURCE_VIDEO.stat().st_size > 10_000_000:
+            print(f"[GTA6 Clipper] Downloaded source video from mirror ({SOURCE_VIDEO.stat().st_size // 1024 // 1024}MB)")
+            return SOURCE_VIDEO
+    except Exception as e:
+        print(f"[GTA6 Clipper] Direct mirror download warning: {e}")
+        if SOURCE_VIDEO.exists():
+            SOURCE_VIDEO.unlink()
 
-    print(f"[GTA6 Clipper] Downloading official 1080p GTA VI footage from YouTube...")
+    # 3. Last resort: yt-dlp with android client
+    print(f"[GTA6 Clipper] Attempting download via yt-dlp...")
     cmd = [
         "yt-dlp",
+        "--extractor-args", "youtube:player_client=android,web",
         "-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
         "--output", str(SOURCE_VIDEO),
         YOUTUBE_SOURCE_URL
     ]
     subprocess.run(cmd, check=True)
-    print(f"[GTA6 Clipper] Downloaded source video: {SOURCE_VIDEO} ({SOURCE_VIDEO.stat().st_size // 1024 // 1024}MB)")
+    print(f"[GTA6 Clipper] Downloaded source video via yt-dlp: {SOURCE_VIDEO} ({SOURCE_VIDEO.stat().st_size // 1024 // 1024}MB)")
     return SOURCE_VIDEO
 
 def clip_scene_segment(source_path: Path, start_sec: float, duration: float, out_path: Path, hook_header: str = "GTA VI DEEP LORE"):
