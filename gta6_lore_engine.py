@@ -17,7 +17,8 @@ GTA6_LORE_TOPICS = [
         "id": "lucia_ankle_monitor",
         "badge": "[ GTA VI SECRET ]",
         "title": "The Dark Secret Behind Lucia's Ankle Monitor... 🤯 #Shorts",
-        "hook_header": "LUCIA'S HIDDEN STORYLINE REVEALED",
+        "hook_header": "ROCKSTAR HID A DARK SECRET IN LUCIA'S ANKLE MONITOR",
+        "hook_sfx": "sfx_hook_boom.mp3",
         "description": "Rockstar hid a dark secret in GTA 6's trailer that reveals the entire storyline! How Lucia's probation ankle monitor traps her in Vice City until Jason helps her break free. Subscribe for daily GTA 6 leaks! #GTA6 #Shorts #GrandTheftAuto6 #RockstarGames #Gaming #ViceCity #GTA6Leaks",
         "tags": ["Shorts", "GTA6", "GrandTheftAuto6", "GTA6Leaks", "RockstarGames", "Gaming", "ViceCity", "Lucia", "Jason", "GTAVI"],
         "scenes": [
@@ -29,9 +30,9 @@ GTA6_LORE_TOPICS = [
             "Which explains the chilling reason why..."
         ],
         "clip_timestamps": [
-            (2.0, 7.0),    # Lucia in prison uniform
+            (63.0, 68.0),  # Police cruiser drift pursuit (Instant frame 0 adrenaline hook)
+            (2.0, 7.0),    # Lucia in prison uniform (Ankle monitor context)
             (15.0, 20.0),  # Vice City beach aerial
-            (63.0, 68.0),  # Police cruiser car chase
             (81.0, 86.0),  # Masked convenience store robbery
             (73.0, 78.0),  # Jason and Lucia driving convertible
             (87.0, 90.0)   # GTA VI logo
@@ -41,7 +42,8 @@ GTA6_LORE_TOPICS = [
         "id": "leonida_map_scale",
         "badge": "[ MAP SCALE ANALYSIS ]",
         "title": "Why GTA 6's Map Destroys GTA 5 & Red Dead 2... 🗺️ #Shorts",
-        "hook_header": "LEONIDA MAP SCALE IS TERRIFYING",
+        "hook_header": "LEONIDA MAP WILL CRUSH RED DEAD 2 AND GTA 5",
+        "hook_sfx": "sfx_whoosh_hit.mp3",
         "description": "Leaked mapping projects prove GTA 6's state of Leonida is 3 times bigger than Los Santos! Full breakdown of Vice City, the Everglades swamps, and islands. Subscribe for more! #GTA6 #Shorts #GrandTheftAuto6 #GTA6Map #Gaming #ViceCity",
         "tags": ["Shorts", "GTA6", "GrandTheftAuto6", "GTA6Map", "RockstarGames", "Gaming", "ViceCity", "Leonida", "RDR2", "GTAVI"],
         "scenes": [
@@ -53,8 +55,8 @@ GTA6_LORE_TOPICS = [
             "And you won't believe the data showing how..."
         ],
         "clip_timestamps": [
+            (26.0, 31.0),  # Airboat full throttle through Everglades (High-speed motion frame 0)
             (12.0, 17.0),  # Vice City aerial skyline
-            (26.0, 31.0),  # Airboat through Everglades swamp
             (33.0, 38.0),  # Ocean Drive neon nightlife
             (48.0, 53.0),  # Mud club party
             (75.0, 80.0),  # Jason driving into sunset
@@ -65,7 +67,8 @@ GTA6_LORE_TOPICS = [
         "id": "police_ai_system",
         "badge": "[ 5-STAR WANTED LEAK ]",
         "title": "Rockstar's Frightening New Police AI in GTA 6 🚨 #Shorts",
-        "hook_header": "5-STAR WANTED LEVEL WILL BREAK YOU",
+        "hook_header": "THIS 5-STAR POLICE AI WILL ABSOLUTELY DESTROY YOU",
+        "hook_sfx": "sfx_police_siren.mp3",
         "description": "Getting a 5-star wanted level in GTA 6 won't be like anything you've seen before. Police remember license plates, scan CCTV, and deploy tactical SWAT units. Subscribe for daily GTA 6 leaks! #GTA6 #Shorts #GrandTheftAuto6 #GTA6Police #Gaming #ViceCity",
         "tags": ["Shorts", "GTA6", "GrandTheftAuto6", "GTA6Police", "RockstarGames", "Gaming", "ViceCity", "WantedLevel", "GTAVI"],
         "scenes": [
@@ -77,7 +80,7 @@ GTA6_LORE_TOPICS = [
             "Giving players virtually zero chance of survival, which is why..."
         ],
         "clip_timestamps": [
-            (58.0, 63.0),  # Police bodycam footage raid
+            (58.0, 63.0),  # Tactical bodycam SWAT breach (Instant emergency hook frame 0)
             (63.0, 68.0),  # Cruisers speeding through intersection
             (43.0, 48.0),  # Security camera livestream
             (27.0, 32.0),  # Swamp alligator & wildlife
@@ -89,7 +92,8 @@ GTA6_LORE_TOPICS = [
         "id": "social_media_mechanic",
         "badge": "[ VIRAL CRIME FEATURE ]",
         "title": "The GTA 6 Social Media Feature Nobody Is Talking About 📱 #Shorts",
-        "hook_header": "IN-GAME TIKTOK CHANGES EVERYTHING",
+        "hook_header": "THIS IN-GAME TIKTOK MECHANIC WILL GET YOU KILLED",
+        "hook_sfx": "sfx_whoosh_hit.mp3",
         "description": "GTA 6's in-game social media isn't just a funny parody; it's a core crime mechanic where NPCs livestream your robberies to millions! Subscribe for more! #GTA6 #Shorts #GrandTheftAuto6 #RockstarGames #Gaming #ViceCity",
         "tags": ["Shorts", "GTA6", "GrandTheftAuto6", "RockstarGames", "Gaming", "ViceCity", "TikTok", "SocialMedia", "GTAVI"],
         "scenes": [
@@ -101,9 +105,9 @@ GTA6_LORE_TOPICS = [
             "Completely changing open-world crime forever, and proving that..."
         ],
         "clip_timestamps": [
+            (50.0, 54.0),  # Gas station street fight livestream (Instant viral chaos frame 0)
             (41.0, 45.0),  # Rooftop livestream girl
             (45.0, 49.0),  # Mud club livestream
-            (50.0, 54.0),  # Gas station street fight
             (54.0, 58.0),  # Florida Joker news mugshot
             (83.0, 87.0),  # Lucia aiming weapon in store
             (87.0, 90.0)   # GTA VI logo
@@ -113,7 +117,8 @@ GTA6_LORE_TOPICS = [
         "id": "bonnie_clyde_tragedy",
         "badge": "[ TRAGIC STORY LORE ]",
         "title": "The Tragic Betrayal Ending Leaked for GTA 6... 💔 #Shorts",
-        "hook_header": "JASON & LUCIA'S FATAL DESTINY",
+        "hook_header": "LEAKED ENDING REVEALS JASON AND LUCIAS FATAL DESTINY",
+        "hook_sfx": "sfx_hook_boom.mp3",
         "description": "The tragic Bonnie and Clyde ending hidden in GTA 6's dialogue. Will Jason betray Lucia, or will Lucia leave him behind? Subscribe for daily GTA 6 lore! #GTA6 #Shorts #GrandTheftAuto6 #RockstarGames #Gaming #ViceCity #GTA6Story",
         "tags": ["Shorts", "GTA6", "GrandTheftAuto6", "GTA6Story", "RockstarGames", "Gaming", "ViceCity", "Lucia", "Jason", "GTAVI"],
         "scenes": [
@@ -125,9 +130,9 @@ GTA6_LORE_TOPICS = [
             "Making everyone terrified that..."
         ],
         "clip_timestamps": [
+            (81.0, 85.0),  # Kicking store doors open with guns drawn (Intense action frame 0)
             (73.0, 77.0),  # Jason and Lucia driving convertible
             (77.0, 81.0),  # Motel bed conversation
-            (81.0, 85.0),  # Kicking open store doors
             (85.0, 88.0),  # "Trust? Trust."
             (73.0, 76.0),  # Driving into sunset
             (87.0, 90.0)   # GTA VI logo
@@ -137,7 +142,8 @@ GTA6_LORE_TOPICS = [
         "id": "physics_and_details",
         "badge": "[ NEXT-GEN PHYSICS ]",
         "title": "Rockstar's Insane Next-Gen Physics in GTA 6... 🤯 #Shorts",
-        "hook_header": "GRAPHICS DETAILS THAT WILL BLOW YOUR MIND",
+        "hook_header": "THESE NEXT-GEN GRAPHICS WILL MELT YOUR CONSOLE",
+        "hook_sfx": "sfx_whoosh_hit.mp3",
         "description": "The level of detail Rockstar put into GTA 6's physics and graphics is genuinely mind-blowing! Water simulation, car deformation, and NPC emotional AI. Subscribe for more! #GTA6 #Shorts #GrandTheftAuto6 #RockstarGames #Gaming #ViceCity",
         "tags": ["Shorts", "GTA6", "GrandTheftAuto6", "GTA6Physics", "RockstarGames", "Gaming", "ViceCity", "NextGen", "GTAVI"],
         "scenes": [
@@ -149,7 +155,7 @@ GTA6_LORE_TOPICS = [
             "Proving beyond any doubt that..."
         ],
         "clip_timestamps": [
-            (15.0, 20.0),  # Speedboats and ocean wake
+            (15.0, 20.0),  # High-speed ocean speedboats cutting wake (Water simulation frame 0)
             (22.0, 26.0),  # Lowrider bouncing car exhaust
             (38.0, 43.0),  # Bikini pool girl hair wind physics
             (33.0, 38.0),  # Ocean Drive neon reflections on car paint

@@ -25,7 +25,7 @@ from gta6_lore_engine import get_gta6_topic
 from gta6_voice_and_subs import generate_gta6_speech_and_timing
 from gta6_clipper import build_gta6_scene_clips
 
-def render_gta6_final_short(cards_video: Path, audio_path: Path, ass_path: Path, duration: float, out_video: Path):
+def render_gta6_final_short(cards_video: Path, audio_path: Path, ass_path: Path, duration: float, out_video: Path, sfx_name: str = "sfx_hook_boom.mp3"):
     """
     Composites video stream, multi-layer audio stream (Speech + BGM + SFX), and burns synchronized word-by-word subtitles.
     """
@@ -33,7 +33,9 @@ def render_gta6_final_short(cards_video: Path, audio_path: Path, ass_path: Path,
     ass_clean = str(ass_path).replace("\\", "/").replace(":", "\\:")
 
     bgm_file = ASSETS_DIR / "gtavi" / "gta6_bgm_suspense.mp3"
-    sfx_file = ASSETS_DIR / "gtavi" / "sfx_hook_boom.mp3"
+    sfx_file = ASSETS_DIR / "gtavi" / sfx_name
+    if not sfx_file.exists():
+        sfx_file = ASSETS_DIR / "gtavi" / "sfx_hook_boom.mp3"
 
     input_args = [
         "-i", str(cards_video),   # [0:v]
@@ -120,12 +122,14 @@ def main():
 
     # 4. Final Composite
     final_video = OUTPUT_DIR / f"gta6_{topic['id']}_final_short.mp4"
+    sfx_name = topic.get("hook_sfx", "sfx_hook_boom.mp3")
     render_gta6_final_short(
         cards_video=stitched_video,
         audio_path=mp3_file,
         ass_path=ass_file,
         duration=total_duration,
-        out_video=final_video
+        out_video=final_video,
+        sfx_name=sfx_name
     )
 
     # 5. YouTube Upload via Data API v3
