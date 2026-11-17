@@ -26,9 +26,9 @@ WHOOSH = SFX_DIR / "sfx_whoosh.mp3"
 def build_snickerly_ass_subtitles(dialogue_events: list, ass_path: Path, hook_title: str = "", streamer_name: str = "", duration: float = 30.0):
     """
     Builds mobile-first Snickerly style ASS subtitles:
-    - Extra bold font, bright yellow/white, heavy black outline
-    - 2-4 words per line, centered in lower third
-    - Includes top hook banner and bottom creator attribution via pure libass
+    - Pure 1-word-at-a-time kinetic pop subtitles in center
+    - Extra bold Impact font (108pt), bright yellow with thick black outline (10px)
+    - Clean look: No top banners or bottom credits (clean video focus)
     """
     ass_header = """[Script Info]
 Title: Snickerly Streamer Subtitles
@@ -38,10 +38,8 @@ PlayResY: 1920
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: SnickerlyWord,Impact,82,&H0000FFFF,&H000000FF,&H00000000,&H80000000,-1,0,0,0,105,105,2,0,1,8,2,2,40,40,480,1
-Style: SnickerlyPunch,Impact,92,&H000055FF,&H000000FF,&H00000000,&H80000000,-1,0,0,0,115,115,3,0,1,9,4,2,40,40,480,1
-Style: HookHeader,Arial,60,&H00FFFFFF,&H000000FF,&H00000000,&H90000000,-1,0,0,0,100,100,2,0,1,7,3,8,40,40,160,1
-Style: CreditTag,Arial,40,&H0000FFCC,&H000000FF,&H00000000,&H80000000,-1,0,0,0,100,100,1,0,1,5,2,1,40,40,80,1
+Style: SnickerlyWord,Impact,108,&H0000FFFF,&H000000FF,&H00000000,&H90000000,-1,0,0,0,105,105,2,0,1,10,2,2,40,40,760,1
+Style: SnickerlyPunch,Impact,118,&H000055FF,&H000000FF,&H00000000,&H90000000,-1,0,0,0,115,115,3,0,1,12,3,2,40,40,760,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -53,26 +51,20 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         return f"{h}:{m:02d}:{s:05.2f}"
 
     lines = [ass_header]
-    
-    # 1. Top Hook Banner across entire video
-    if hook_title:
-        lines.append(f"Dialogue: 0,0:00:00.00,{fmt(duration)},HookHeader,,0,0,0,,{hook_title.upper()}\n")
 
-    # 2. Bottom Credit attribution
-    if streamer_name:
-        lines.append(f"Dialogue: 0,0:00:00.00,{fmt(duration)},CreditTag,,0,0,0,,CLIP VIA @{streamer_name.upper()}\n")
-
-    # 3. Synchronized Dialogues
+    # Synchronized 1-word-at-a-time Dialogues in Center
     for d in dialogue_events:
         start_t = d["start"]
         end_t = d["end"]
-        text = d["text"].upper()
-        style = "SnickerlyPunch" if d.get("punch") else "SnickerlyWord"
-        lines.append(f"Dialogue: 1,{fmt(start_t)},{fmt(end_t)},{style},,0,0,0,,{text}\n")
+        # Ensure single word display
+        text = d["text"].upper().strip()
+        if text:
+            style = "SnickerlyPunch" if d.get("punch") else "SnickerlyWord"
+            lines.append(f"Dialogue: 1,{fmt(start_t)},{fmt(end_t)},{style},,0,0,0,,{text}\n")
 
     with open(ass_path, "w", encoding="utf-8") as f:
         f.writelines(lines)
-    print(f"✅ Generated Snickerly ASS Subtitles: {ass_path.name}")
+    print(f"✅ Generated 1-Word Kinetic ASS Subtitles: {ass_path.name}")
 
 def render_snickerly_video(
     source_video: str,

@@ -2,8 +2,8 @@ name: Autonomous Snickerly Streamer Clipper & Multi-Platform Publisher
 
 on:
   schedule:
-    # Runs every 2 hours during peak gaming hours
-    - cron: '0 */2 * * *'
+    # Runs every 30 minutes 24/7 for ultra-fast GTA VI streamer clipping & publishing
+    - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
       streamer_id:

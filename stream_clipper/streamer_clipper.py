@@ -89,12 +89,38 @@ def auto_detect_snickerly_events(transcript_words: list = None, duration: float 
             {"type": "wholesome", "start": min(duration * 0.65, 11.0), "end": min(duration * 0.85, 15.0)},
             {"type": "eat", "time": min(duration * 0.9, 16.0)}
         ]
+        # 1-word-at-a-time kinetic subtitles matching real-time speech cadence
+        raw_words = [
+            ("BRO", 0.5, 0.85, True),
+            ("REALLY", 0.85, 1.25, False),
+            ("JUST", 1.25, 1.60, False),
+            ("PULLED", 1.60, 2.00, False),
+            ("UP", 2.00, 2.30, False),
+            ("TO", 2.30, 2.55, False),
+            ("GTA", 2.55, 3.10, True),
+            ("6!", 3.10, 3.60, True),
+            ("WAIT...", 4.20, 4.70, True),
+            ("WHAT", 4.70, 5.15, True),
+            ("DID", 5.15, 5.50, False),
+            ("HE", 5.50, 5.80, False),
+            ("JUST", 5.80, 6.20, False),
+            ("DO?", 6.20, 6.75, True),
+            ("NO", 7.20, 7.65, True),
+            ("WAY!", 7.65, 8.20, True),
+            ("LOOK", 8.40, 8.85, False),
+            ("AT", 8.85, 9.15, False),
+            ("THIS...", 9.15, 9.75, False),
+            ("ACTUALLY", 10.00, 10.60, False),
+            ("SO", 10.60, 11.00, False),
+            ("WHOLESOME!", 11.00, 12.20, True),
+            ("WAIT", 12.80, 13.30, False),
+            ("FOR", 13.30, 13.65, False),
+            ("THE", 13.65, 13.95, False),
+            ("ENDING!", 13.95, 14.80, True),
+        ]
         dialogues = [
-            {"start": 0.5, "end": 2.2, "text": "BRO REALLY PULLED UP TO GTA 6 💀", "punch": False},
-            {"start": 2.5, "end": 5.0, "text": "HE DID NOT JUST DO THAT", "punch": False},
-            {"start": 5.5, "end": 8.0, "text": "WATCH WHAT HAPPENS NEXT 😭", "punch": True},
-            {"start": 8.5, "end": 12.0, "text": "BRO TURNED WHOLESOME REAL QUICK ❤️", "punch": False},
-            {"start": 12.5, "end": min(duration, 17.5), "text": "BEST GTA 6 MOMENT EVER", "punch": True}
+            {"start": s, "end": e, "text": w, "punch": p}
+            for (w, s, e, p) in raw_words if e <= duration
         ]
 
     return events, dialogues
