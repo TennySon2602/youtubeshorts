@@ -1,6 +1,8 @@
 # Environment and Secrets
 .env
 token.json
+tiktok_token.json
+keys.txt
 client_secrets.json
 *.pem
 
