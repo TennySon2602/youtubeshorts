@@ -8,13 +8,28 @@ import time
 import requests
 from pathlib import Path
 
+# Load .env locally if available
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+env_path = Path(__file__).parent / ".env"
+if env_path.exists():
+    with open(env_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                val = v.strip().strip("\"'")
+                if val:
+                    os.environ.setdefault(k.strip(), val)
+
 # Defaults from environment or project config
 DEFAULT_FB_PAGE_ID = os.environ.get("FB_PAGE_ID", "1489998967525792")
 DEFAULT_INSTAGRAM_ACCOUNT_ID = os.environ.get("INSTAGRAM_ACCOUNT_ID", "17841457367667463")
-DEFAULT_ACCESS_TOKEN = os.environ.get(
-    "FB_PAGE_ACCESS_TOKEN",
-    "EAAahl5gbyioBTOzX3IXgVqouu1c26nZCHBnte9ZBNsBZC5sw36gHMTWNkrthcxcwtGPk4ZAaQaq1P2ZAARwUZAKEbZCQFECCJw6nxVEJ2OUt299LHIq7NcZCsX4kpgEVXkMmQGYqF5vFRUxdsuaHTY3kBXEagryTVZAPekWTzBLFFaSDx3UmHx5KZCyMaDuvmzQw0UtEDzRB3oG9JWGQ63QHYZBqubDgaVmmuEQMf6LtL7LttAj"
-)
+DEFAULT_ACCESS_TOKEN = os.environ.get("FB_PAGE_ACCESS_TOKEN", "")
 
 GRAPH_API_VERSION = "v21.0"
 GRAPH_BASE = f"https://graph.facebook.com/{GRAPH_API_VERSION}"

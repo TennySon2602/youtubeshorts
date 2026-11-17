@@ -8,16 +8,27 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Load local environment
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+env_path = Path(__file__).parent / ".env"
+if env_path.exists():
+    with open(env_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                val = v.strip().strip("\"'")
+                if val:
+                    os.environ[k.strip()] = val
 
 # Meta credentials
 FB_PAGE_ID = os.environ.get("FB_PAGE_ID", "1489998967525792")
 IG_ACCOUNT_ID = os.environ.get("INSTAGRAM_ACCOUNT_ID", "17841457367667463")
 ACCESS_TOKEN = os.environ.get("FB_PAGE_ACCESS_TOKEN", "").strip()
-
-# If not in env, check default fallback or prompt
-if not ACCESS_TOKEN:
-    ACCESS_TOKEN = "EAAahl5gbyioBTOzX3IXgVqouu1c26nZCHBnte9ZBNsBZC5sw36gHMTWNkrthcxcwtGPk4ZAaQaq1P2ZAARwUZAKEbZCQFECCJw6nxVEJ2OUt299LHIq7NcZCsX4kpgEVXkMmQGYqF5vFRUxdsuaHTY3kBXEagryTVZAPekWTzBLFFaSDx3UmHx5KZCyMaDuvmzQw0UtEDzRB3oG9JWGQ63QHYZBqubDgaVmmuEQMf6LtL7LttAj"
 
 def check_token(token: str):
     print("🔍 Đang kiểm tra trạng thái Token...")
