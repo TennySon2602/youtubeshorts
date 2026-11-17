@@ -20,6 +20,8 @@ ENV/
 assets/minecraft_parkour.mp4
 assets/clip_chamber.mp4.mkv
 output/
+stream_clipper/output/
+*.ass
 temp/
 *.log
 assets/topics/drama_*/
