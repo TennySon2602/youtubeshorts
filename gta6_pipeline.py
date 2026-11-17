@@ -132,13 +132,13 @@ def main():
         sfx_name=sfx_name
     )
 
-    # 5. YouTube Upload via Data API v3
+    # 5. Multi-Platform Autonomous Publishing
     if os.environ.get("SKIP_UPLOAD") == "1":
-        print("\n[Upload] SKIP_UPLOAD=1 detected. Skipping YouTube upload.")
+        print("\n[Upload] SKIP_UPLOAD=1 detected. Skipping all platform uploads.")
     else:
+        # A. YouTube Shorts Upload
         privacy = os.environ.get("UPLOAD_PRIVACY", "public")
-        print(f"\n[Upload] Publishing GTA VI Short to YouTube (privacy='{privacy}')...")
-        
+        print(f"\n[Upload 1/3] Publishing to YouTube Shorts (privacy='{privacy}')...")
         try:
             from youtube_uploader import upload_video
             upload_video(
@@ -150,8 +150,34 @@ def main():
             )
             print("🚀 Successfully uploaded to YouTube channel!")
         except Exception as e:
-            print(f"[Upload Warning] YouTube upload failed: {e}")
-            print("If running in CI, ensure secret YOUTUBE_TOKEN_JSON is set.")
+            print(f"[YouTube Warning] Upload failed: {e}")
+
+        # B. Meta Upload (Facebook Reels & Instagram Reels)
+        print(f"\n[Upload 2/3] Publishing to Facebook Reels & Instagram Reels...")
+        try:
+            from meta_uploader import upload_all_meta_reels
+            meta_res = upload_all_meta_reels(
+                file_path=str(final_video),
+                title=topic["title"],
+                description=topic["description"],
+                tags=topic["tags"]
+            )
+            print(f"🚀 Meta Upload Results: {meta_res}")
+        except Exception as e:
+            print(f"[Meta Warning] Upload failed: {e}")
+
+        # C. TikTok Upload
+        print(f"\n[Upload 3/3] Publishing to TikTok...")
+        try:
+            from tiktok_uploader import upload_tiktok_video
+            tiktok_res = upload_tiktok_video(
+                file_path=str(final_video),
+                title=topic["title"],
+                tags=topic["tags"]
+            )
+            print(f"🚀 TikTok Upload Result: {tiktok_res}")
+        except Exception as e:
+            print(f"[TikTok Warning] Upload skipped or failed: {e}")
 
     print("\n==================================================")
     print("✨ GTA VI SHORT GENERATION FINISHED SUCCESSFULLY!")
