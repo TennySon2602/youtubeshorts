@@ -324,6 +324,7 @@ def process_and_publish_stream_clip(
         tags = ["GTA6", "GTAVI", streamer_name.replace(" ", ""), "Gaming", "Snickerly", "Reels", "Shorts"]
         desc = f"{clip_title}\n\nStreamer: @{streamer_name}\nGame: Grand Theft Auto VI\nEdited with Snickerly aesthetics.\n\n" + " ".join([f"#{t}" for t in tags])
 
+        # 7.1 Meta (Facebook Reels & Instagram Reels)
         try:
             from meta_uploader import upload_all_meta_reels
             print("\n🚀 Publishing live to Meta (Facebook & Instagram Reels)...")
@@ -331,6 +332,24 @@ def process_and_publish_stream_clip(
             print(f"✅ Meta Publication Success: {res_meta}")
         except Exception as e:
             print(f"⚠️ Meta publication error: {e}")
+
+        # 7.2 YouTube Shorts
+        try:
+            from youtube_uploader import upload_video
+            print("\n🚀 Publishing live to YouTube Shorts...")
+            yt_title = f"{streamer_name} Plays GTA 6 - Funniest Reaction! 💀 #Shorts"
+            yt_res = upload_video(
+                file_path=rendered_file,
+                title=yt_title,
+                description=desc,
+                tags=tags,
+                category_id="20",
+                privacy_status="public"
+            )
+            vid_id = yt_res.get("id") if isinstance(yt_res, dict) else yt_res
+            print(f"✅ YouTube Shorts Publication Success: https://youtube.com/shorts/{vid_id}")
+        except Exception as e:
+            print(f"⚠️ YouTube upload error: {e}")
 
     return rendered_file
 
