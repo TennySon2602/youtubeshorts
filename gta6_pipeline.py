@@ -167,7 +167,7 @@ def main():
             print(f"[Meta Warning] Upload failed: {e}")
 
         # C. TikTok Upload
-        print(f"\n[Upload 3/3] Publishing to TikTok...")
+        print(f"\n[Upload 3/4] Publishing to TikTok...")
         try:
             from tiktok_uploader import upload_tiktok_video
             tiktok_res = upload_tiktok_video(
@@ -178,6 +178,19 @@ def main():
             print(f"🚀 TikTok Upload Result: {tiktok_res}")
         except Exception as e:
             print(f"[TikTok Warning] Upload skipped or failed: {e}")
+
+        # D. Twitter (X) Upload
+        print(f"\n[Upload 4/4] Publishing to Twitter (X)...")
+        try:
+            from twitter_uploader import upload_twitter_video
+            tw_res = upload_twitter_video(
+                file_path=str(final_video),
+                caption=topic["title"],
+                tags=topic["tags"]
+            )
+            print(f"🚀 Twitter (X) Upload Result: {tw_res}")
+        except Exception as e:
+            print(f"[Twitter/X Warning] Upload skipped or failed: {e}")
 
     print("\n==================================================")
     print("✨ GTA VI SHORT GENERATION FINISHED SUCCESSFULLY!")
