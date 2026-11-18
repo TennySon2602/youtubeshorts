@@ -6,35 +6,56 @@ on:
     - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
-      auto_discover:
-        description: 'Auto-discover live GTA streamers >= 30,000 viewers'
+      execution_mode:
+        description: 'Choose Execution Mode'
         required: true
-        default: true
-        type: boolean
-      streamer_id:
-        description: 'Target specific streamer if auto-discover is false'
-        required: false
-        default: 'xqc'
+        default: 'auto_batch'
         type: choice
         options:
-          - xqc
-          - alanzoka
-          - djmariio
-          - trymacs
-          - montanablack88
-          - kaicenat
-          - ishowspeed
+          - 'auto_batch'
+          - 'matrix_parallel'
+          - 'single_streamer'
+      max_streamers:
+        description: 'Number of streamers to process in auto_batch mode'
+        required: false
+        default: '3'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '5'
+          - '10'
+      specific_streamer:
+        description: 'Target Streamer (if single_streamer mode selected)'
+        required: false
+        default: 'kaicenat'
+        type: choice
+        options:
+          - 'kaicenat'
+          - 'alanzoka'
+          - 'xqc'
+          - 'djmariio'
+          - 'trymacs'
+          - 'montanablack88'
+          - 'theburntpeanut'
+          - 'ohnepixel'
+          - 'ishowspeed'
+          - 'caseoh'
+          - 'jynxzi'
       publish:
-        description: 'Publish automatically to FB Reels & IG Reels'
+        description: 'Publish automatically to Facebook Reels & Instagram Reels'
         required: true
         default: true
         type: boolean
 
 jobs:
-  clip_and_publish:
-    name: Snickerly Stream Clip & Multi-Platform Publish
+  # 1. Batch Mode (Default & Scheduled): Auto-discovers & processes top N streamers >= 30,000 viewers
+  batch_clipper:
+    name: Auto Batch Stream Clipper (Top N Streamers)
+    if: github.event_name == 'schedule' || github.event.inputs.execution_mode == 'auto_batch'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Checkout Code
@@ -56,17 +77,100 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Snickerly Clipper Engine (24/7 GTA VI 30k+ Viewers)
+      - name: Run Multi-Streamer Clipper Engine
         env:
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
-          AUTO_DISCOVER: ${{ github.event.inputs.auto_discover || 'true' }}
-          STREAMER_ID: ${{ github.event.inputs.streamer_id || 'xqc' }}
+          MAX_STREAMERS: ${{ github.event.inputs.max_streamers || '3' }}
           PUBLISH_FLAG: ${{ github.event.inputs.publish || 'true' }}
         run: |
-          if [ "$AUTO_DISCOVER" = "true" ]; then
-            python stream_clipper/streamer_clipper.py --auto-discover --min-viewers 30000 --publish
-          else
-            python stream_clipper/streamer_clipper.py --streamer "$STREAMER_ID" --publish
+          PUB_ARG=""
+          if [ "$PUBLISH_FLAG" = "true" ]; then
+            PUB_ARG="--publish"
           fi
+          python stream_clipper/streamer_clipper.py --auto-discover --min-viewers 30000 --max-streamers "$MAX_STREAMERS" $PUB_ARG
+
+  # 2. Matrix Parallel Mode: Runs 5 parallel Ubuntu runners concurrently for Top 5 Streamers
+  matrix_parallel_clipper:
+    name: Parallel Runner (${{ matrix.streamer }})
+    if: github.event.inputs.execution_mode == 'matrix_parallel'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        streamer: [kaicenat, alanzoka, xqc, djmariio, montanablack88]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install System Dependencies (FFmpeg & Fonts)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core fonts-liberation fonts-noto
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Streamer Clipper for ${{ matrix.streamer }}
+        env:
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
+          PUBLISH_FLAG: ${{ github.event.inputs.publish || 'true' }}
+        run: |
+          PUB_ARG=""
+          if [ "$PUBLISH_FLAG" = "true" ]; then
+            PUB_ARG="--publish"
+          fi
+          python stream_clipper/streamer_clipper.py --streamer "${{ matrix.streamer }}" $PUB_ARG
+
+  # 3. Single Streamer Mode: Process one specifically selected streamer
+  single_clipper:
+    name: Single Runner (${{ github.event.inputs.specific_streamer }})
+    if: github.event.inputs.execution_mode == 'single_streamer'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install System Dependencies (FFmpeg & Fonts)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core fonts-liberation fonts-noto
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Streamer Clipper for ${{ github.event.inputs.specific_streamer }}
+        env:
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
+          PUBLISH_FLAG: ${{ github.event.inputs.publish || 'true' }}
+        run: |
+          PUB_ARG=""
+          if [ "$PUBLISH_FLAG" = "true" ]; then
+            PUB_ARG="--publish"
+          fi
+          python stream_clipper/streamer_clipper.py --streamer "${{ github.event.inputs.specific_streamer }}" $PUB_ARG

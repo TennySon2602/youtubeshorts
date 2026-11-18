@@ -3,6 +3,8 @@ Stream Clipper & Multi-Platform Publisher (Snickerly Style)
 Monitors, downloads, automatically edits, and publishes authentic streamer clips.
 Features:
 - Live Twitch discovery for GTA streamers with >= 30,000 concurrent viewers
+- Multi-streamer batching (process multiple streamers per run)
+- Processed clips history to prevent duplicate uploads
 - Direct authentic clip ingestion via Twitch & yt-dlp
 - Real-time 1-word-at-a-time yellow kinetic subtitles powered by Faster-Whisper
 - Preserves streamer facecam & authentic audio voice/screams/reactions
@@ -30,12 +32,33 @@ if str(BASE_DIR) not in sys.path:
 load_dotenv(ROOT_DIR / ".env")
 
 CONFIG_FILE = BASE_DIR / "config" / "streamers_30.json"
+PROCESSED_CLIPS_FILE = BASE_DIR / "config" / "processed_clips.json"
 OUTPUT_DIR = BASE_DIR / "output"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 from snickerly_editor import render_snickerly_video
 
 TWITCH_HEADERS = {"Client-Id": "kimne78kx3ncx6brgo4mv6wki5h1ko"}
+
+def load_processed_clips() -> set:
+    """Loads previously processed clip IDs or slugs to prevent duplicate work"""
+    if PROCESSED_CLIPS_FILE.exists():
+        try:
+            with open(PROCESSED_CLIPS_FILE, "r", encoding="utf-8") as f:
+                return set(json.load(f))
+        except Exception:
+            pass
+    return set()
+
+def mark_clip_processed(clip_identifier: str):
+    """Saves clip ID or slug to the processed history file"""
+    clips = load_processed_clips()
+    clips.add(clip_identifier)
+    try:
+        with open(PROCESSED_CLIPS_FILE, "w", encoding="utf-8") as f:
+            json.dump(list(clips), f, indent=2)
+    except Exception as e:
+        print(f"⚠️ Failed to save processed clip history: {e}")
 
 def search_live_gta_streamers(min_viewers: int = 30000) -> list:
     """Queries Twitch GQL for streamers currently live in GTA VI or GTA V with >= min_viewers"""
@@ -168,7 +191,7 @@ def download_clip_with_ytdlp(clip_url: str, out_filename: str = "temp_stream_cli
 def transcribe_clip_words(audio_video_path: Path) -> list:
     """
     Transcribes audio using Faster-Whisper to extract exact 1-word timestamps
-    Returns list of dicts: [{"word": "BRO", "start": 1.2, "end": 1.5, "punch": True}, ...]
+    Returns list of dicts: [{"text": "BRO", "start": 1.2, "end": 1.5, "punch": True}, ...]
     """
     try:
         from faster_whisper import WhisperModel
@@ -183,57 +206,52 @@ def transcribe_clip_words(audio_video_path: Path) -> list:
                 clean_w = w.word.strip().upper()
                 if clean_w:
                     is_punch = any(k in clean_w for k in ["WHAT", "BRO", "NO", "WAIT", "HUH", "HELL", "DAMN", "SHIT", "FUCK", "CRAZY"])
+                    start_t = max(0.0, float(w.start))
+                    # Prevent word from lingering too long: cap at 0.5s duration
+                    end_t = min(float(w.end), start_t + 0.5)
                     words.append({
                         "text": clean_w,
-                        "start": w.start,
-                        "end": w.end,
+                        "start": start_t,
+                        "end": end_t,
                         "punch": is_punch
                     })
         print(f"✅ Transcribed {len(words)} words with real-time timestamps.")
         return words
     except Exception as e:
-        print(f"⚠️ Faster-Whisper transcription failed, fallback to rhythmic timing: {e}")
-        # Fallback rhythmic words
+        print(f"⚠️ Faster-Whisper transcription fallback to rhythmic timing: {e}")
         fallback = [
             ("BRO", 0.5, 0.9, True),
             ("JUST", 0.9, 1.3, False),
             ("WATCH", 1.3, 1.7, False),
             ("THIS", 1.7, 2.1, False),
-            ("MOMENT", 2.1, 2.7, True),
-            ("IN", 2.7, 3.0, False),
-            ("GTA", 3.0, 3.5, True),
-            ("6!", 3.5, 4.0, True),
-            ("WAIT", 4.2, 4.7, False),
-            ("WHAT?", 4.7, 5.3, True),
-            ("LOOK", 5.5, 6.0, False),
-            ("AT", 6.0, 6.3, False),
-            ("HIM!", 6.3, 7.0, True),
+            ("MOMENT", 2.1, 2.6, True),
+            ("IN", 2.6, 2.9, False),
+            ("GTA", 2.9, 3.4, True),
+            ("6!", 3.4, 3.9, True),
+            ("WAIT", 4.1, 4.6, False),
+            ("WHAT?", 4.6, 5.1, True),
         ]
         return [{"text": w, "start": s, "end": e, "punch": p} for (w, s, e, p) in fallback]
 
 def detect_snickerly_cues(words: list, duration: float) -> list:
-    """
-    Generates Snickerly SFX cues based on spoken words and time milestones
-    """
+    """Generates Snickerly SFX cues based on spoken words and time milestones"""
     events = []
     boom_times = []
 
     for w in words:
         txt = w["text"].lower()
-        t = w["start"]
+        t = float(w["start"])
         if any(k in txt for k in ["water", "drink", "sip", "thirsty"]):
             events.append({"type": "drink", "time": t})
         elif any(k in txt for k in ["eat", "food", "burger", "bite", "chew"]):
             events.append({"type": "eat", "time": t})
         elif any(k in txt for k in ["what", "bro", "huh", "pause", "no", "hell", "fuck", "damn"]):
-            # Avoid placing vine booms too close together (at least 3.0s apart)
             if not any(abs(t - bt) < 3.0 for bt in boom_times):
                 events.append({"type": "vine_boom", "time": t, "zoom": True})
                 boom_times.append(t)
         elif any(k in txt for k in ["love", "wholesome", "proud", "thank", "gg"]):
             events.append({"type": "wholesome", "start": t, "end": min(duration, t + 4.0)})
 
-    # Ensure at least one vine boom if none triggered
     if not boom_times and duration > 5.0:
         default_boom = min(duration * 0.45, 6.0)
         events.append({"type": "vine_boom", "time": default_boom, "zoom": True})
@@ -247,15 +265,15 @@ def get_streamer_layout(streamer_login: str) -> str:
             streamers = json.load(f).get("streamers", [])
             for s in streamers:
                 if s.get("id") == streamer_login or s.get("channel") == streamer_login:
-                    return s.get("facecam_layout", "stacked_bottom_left")
-    # Default layout
-    if streamer_login.lower() in ["xqc", "kaicenat"]:
-        return "stacked_bottom_left"
-    elif streamer_login.lower() in ["alanzoka", "djmariio", "trymacs"]:
+                    return s.get("facecam_layout", "stacked_top_left")
+    # Intelligent default positions
+    if streamer_login.lower() in ["alanzoka", "djmariio", "trymacs", "theburntpeanut", "ohnepixel"]:
         return "stacked_top_left"
     elif streamer_login.lower() in ["montanablack88"]:
         return "stacked_bottom_right"
-    return "stacked_bottom_left"
+    elif streamer_login.lower() in ["xqc", "kaicenat"]:
+        return "stacked_bottom_left"
+    return "stacked_top_left"
 
 def process_and_publish_stream_clip(
     clip_url: str,
@@ -317,12 +335,15 @@ def process_and_publish_stream_clip(
     return rendered_file
 
 def run_cli():
-    parser = argparse.ArgumentParser(description="Snickerly 24/7 Autonomous Stream Clipper")
+    parser = argparse.ArgumentParser(description="Snickerly 24/7 Autonomous Multi-Streamer Clipper")
     parser.add_argument("--auto-discover", action="store_true", help="Auto-discover live GTA streamers >= 30k viewers")
     parser.add_argument("--min-viewers", type=int, default=30000, help="Minimum viewers threshold (default 30000)")
-    parser.add_argument("--streamer", type=str, default="xqc", help="Target streamer login")
+    parser.add_argument("--max-streamers", type=int, default=3, help="Max number of distinct streamers to process in one run (default 3)")
+    parser.add_argument("--streamer", type=str, default="xqc", help="Target streamer login (or comma-separated logins, e.g. xqc,alanzoka,djmariio)")
     parser.add_argument("--publish", action="store_true", help="Publish to Meta Reels")
     args = parser.parse_args()
+
+    processed_history = load_processed_clips()
 
     if args.auto_discover:
         print(f"🔍 Searching for live GTA streamers with >= {args.min_viewers:,} viewers...")
@@ -335,13 +356,32 @@ def run_cli():
         for s in live_streamers:
             print(f"   - {s['displayName']} (@{s['login']}): {s['viewersCount']:,} viewers [{s['game']}]")
 
-        # Pick top streamer with available clips
+        processed_count = 0
         for target in live_streamers:
+            if processed_count >= args.max_streamers:
+                print(f"\n🎉 Successfully reached limit of {args.max_streamers} streamers for this run!")
+                break
+
             print(f"\nChecking clips for {target['displayName']} (@{target['login']})...")
-            clips = get_streamer_clips(target['login'], limit=3)
-            if clips:
-                chosen_clip = clips[0]
-                print(f"🎯 Selected viral clip: '{chosen_clip['title']}' ({chosen_clip['url']})")
+            clips = get_streamer_clips(target['login'], limit=5)
+            if not clips:
+                print(f"   No recent clips for {target['login']}. Skipping.")
+                continue
+
+            # Pick top clip not yet processed
+            chosen_clip = None
+            for c in clips:
+                clip_id = c.get("slug") or c.get("url") or c.get("id")
+                if clip_id not in processed_history:
+                    chosen_clip = c
+                    break
+
+            if not chosen_clip:
+                print(f"   All top clips for {target['login']} have already been processed previously. Skipping.")
+                continue
+
+            print(f"🎯 [{processed_count + 1}/{args.max_streamers}] Selected clip: '{chosen_clip['title']}' ({chosen_clip['url']})")
+            try:
                 process_and_publish_stream_clip(
                     clip_url=chosen_clip['url'],
                     streamer_name=target['displayName'],
@@ -349,24 +389,40 @@ def run_cli():
                     clip_title=chosen_clip['title'],
                     publish=args.publish
                 )
-                return
-        print("⚠️ No clips found for any live streamer.")
+                mark_clip_processed(chosen_clip.get("slug") or chosen_clip.get("url"))
+                processed_count += 1
+            except Exception as e:
+                print(f"⚠️ Error processing {target['login']}: {e}")
+
+        print(f"\n🏁 Finished batch run: Processed {processed_count} streamers.")
+
     else:
-        # Target specific streamer
-        login = args.streamer
-        print(f"Fetching clips for streamer @{login}...")
-        clips = get_streamer_clips(login, limit=3)
-        if not clips:
-            print(f"❌ No clips found for @{login}")
-            return
-        c = clips[0]
-        process_and_publish_stream_clip(
-            clip_url=c['url'],
-            streamer_name=login.upper(),
-            streamer_login=login,
-            clip_title=c['title'],
-            publish=args.publish
-        )
+        # Target specific streamer or list of comma-separated streamers
+        streamer_logins = [s.strip() for s in args.streamer.split(",") if s.strip()]
+        for login in streamer_logins:
+            print(f"\nFetching clips for streamer @{login}...")
+            clips = get_streamer_clips(login, limit=5)
+            if not clips:
+                print(f"❌ No clips found for @{login}")
+                continue
+
+            chosen_clip = None
+            for c in clips:
+                clip_id = c.get("slug") or c.get("url") or c.get("id")
+                if clip_id not in processed_history:
+                    chosen_clip = c
+                    break
+            if not chosen_clip:
+                chosen_clip = clips[0]
+
+            process_and_publish_stream_clip(
+                clip_url=chosen_clip['url'],
+                streamer_name=login.upper(),
+                streamer_login=login,
+                clip_title=chosen_clip['title'],
+                publish=args.publish
+            )
+            mark_clip_processed(chosen_clip.get("slug") or chosen_clip.get("url"))
 
 if __name__ == "__main__":
     run_cli()
