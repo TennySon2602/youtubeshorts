@@ -330,8 +330,14 @@ def process_and_publish_stream_clip(
             print("\n🚀 Publishing live to Meta (Facebook & Instagram Reels)...")
             res_meta = upload_all_meta_reels(rendered_file, hook_title, desc, tags)
             print(f"✅ Meta Publication Success: {res_meta}")
+            if "error" in str(res_meta):
+                print(f"⚠️ [Meta Warning] Chi tiết lỗi Meta: {res_meta}")
         except Exception as e:
-            print(f"⚠️ Meta publication error: {e}")
+            err_msg = str(e)
+            if "Session has expired" in err_msg or "code 190" in err_msg:
+                print("\n❌ [Meta Token Expired] Facebook Page Access Token đã hết hạn! Vui lòng cập nhật token mới vào secret 'FB_PAGE_ACCESS_TOKEN' trên GitHub.")
+            else:
+                print(f"⚠️ Meta publication error: {e}")
 
         # 7.2 YouTube Shorts
         try:
@@ -349,7 +355,11 @@ def process_and_publish_stream_clip(
             vid_id = yt_res.get("id") if isinstance(yt_res, dict) else yt_res
             print(f"✅ YouTube Shorts Publication Success: https://youtube.com/shorts/{vid_id}")
         except Exception as e:
-            print(f"⚠️ YouTube upload error: {e}")
+            err_str = str(e)
+            if "uploadLimitExceeded" in err_str:
+                print("\n⚠️ [YouTube Quota Limit] Kênh YouTube đã đạt giới hạn tối đa số lượng video được tải lên trong 24 giờ của Google (uploadLimitExceeded). Hạn ngạch sẽ tự động hồi lại sau 24 giờ.")
+            else:
+                print(f"⚠️ YouTube upload error: {e}")
 
     return rendered_file
 
