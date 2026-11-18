@@ -112,53 +112,58 @@ def render_snickerly_video(
     build_snickerly_ass_subtitles(
         dialogue_events=dialogues,
         ass_path=ass_file,
-        margin_v=850
+        margin_v=900
     )
 
-    # Base Layout Filters
-    # Top facecam (1080x800), Bottom gameplay (1080x1120) -> Stacked 1080x1920
+    # Base Layout Filters: 50/50 Split (Top: Camera 1080x960, Bottom: Wide Gameplay 1080x960)
     video_filters = []
+    
+    # Wide, comfortable gameplay crop (82% width, 96% height) to prevent cramped/narrow view
+    game_w = int(width * 0.82)
+    game_h = int(height * 0.96)
+    game_x = int(width * 0.12)
+    game_y = int(height * 0.02)
+
     if layout_mode == "stacked_bottom_left":
         # Streamer facecam in bottom left (e.g. xQc)
         cam_w = int(width * 0.22)
         cam_h = int(height * 0.30)
         cam_x = 0
         cam_y = int(height * 0.48)
-        game_w = int(width * 0.65)
-        game_x = int(width * 0.25)
         video_filters.append(
-            f"[0:v]crop={cam_w}:{cam_h}:{cam_x}:{cam_y},scale=1080:800:force_original_aspect_ratio=increase,crop=1080:800[cam];"
-            f"[0:v]crop={game_w}:{height}:{game_x}:0,scale=1080:1120:force_original_aspect_ratio=increase,crop=1080:1120[game];"
+            f"[0:v]crop={cam_w}:{cam_h}:{cam_x}:{cam_y},scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960[cam];"
+            f"[0:v]crop={game_w}:{game_h}:{game_x}:{game_y},scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960[game];"
             f"[cam][game]vstack[v_base]"
         )
     elif layout_mode == "stacked_top_left":
-        # Streamer facecam in top left (e.g. alanzoka)
+        # Streamer facecam in top left (e.g. alanzoka, kaicenat, djmariio)
         cam_w = int(width * 0.25)
-        cam_h = int(height * 0.30)
+        cam_h = int(height * 0.32)
         cam_x = 0
         cam_y = 0
-        game_w = int(width * 0.65)
-        game_x = int(width * 0.25)
         video_filters.append(
-            f"[0:v]crop={cam_w}:{cam_h}:{cam_x}:{cam_y},scale=1080:800:force_original_aspect_ratio=increase,crop=1080:800[cam];"
-            f"[0:v]crop={game_w}:{height}:{game_x}:0,scale=1080:1120:force_original_aspect_ratio=increase,crop=1080:1120[game];"
+            f"[0:v]crop={cam_w}:{cam_h}:{cam_x}:{cam_y},scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960[cam];"
+            f"[0:v]crop={game_w}:{game_h}:{game_x}:{game_y},scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960[game];"
             f"[cam][game]vstack[v_base]"
         )
     elif layout_mode == "stacked_bottom_right":
+        # Streamer facecam in bottom right (e.g. montanablack88)
         cam_w = int(width * 0.25)
-        cam_h = int(height * 0.30)
+        cam_h = int(height * 0.32)
         cam_x = int(width * 0.75)
-        cam_y = int(height * 0.70)
-        game_w = int(width * 0.65)
-        game_x = int(width * 0.10)
+        cam_y = int(height * 0.68)
         video_filters.append(
-            f"[0:v]crop={cam_w}:{cam_h}:{cam_x}:{cam_y},scale=1080:800:force_original_aspect_ratio=increase,crop=1080:800[cam];"
-            f"[0:v]crop={game_w}:{height}:{game_x}:0,scale=1080:1120:force_original_aspect_ratio=increase,crop=1080:1120[game];"
+            f"[0:v]crop={cam_w}:{cam_h}:{cam_x}:{cam_y},scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960[cam];"
+            f"[0:v]crop={game_w}:{game_h}:{game_x}:{game_y},scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960[game];"
             f"[cam][game]vstack[v_base]"
         )
     else:
-        # Fallback center 9:16
-        video_filters.append("[0:v]scale=-1:1920,crop=1080:1920:(in_w-1080)/2:0,setsar=1[v_base]")
+        # Fallback 50/50 split
+        video_filters.append(
+            f"[0:v]crop={int(width*0.35)}:{int(height*0.4)}:0:0,scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960[cam];"
+            f"[0:v]crop={game_w}:{game_h}:{game_x}:{game_y},scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960[game];"
+            f"[cam][game]vstack[v_base]"
+        )
 
     curr_v = "[v_base]"
 
