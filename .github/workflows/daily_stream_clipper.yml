@@ -6,29 +6,26 @@ on:
     - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
-      streamer_id:
-        description: 'Select Streamer or choose auto'
+      auto_discover:
+        description: 'Auto-discover live GTA streamers >= 30,000 viewers'
         required: true
-        default: 'kaicenat'
+        default: true
+        type: boolean
+      streamer_id:
+        description: 'Target specific streamer if auto-discover is false'
+        required: false
+        default: 'xqc'
         type: choice
         options:
-          - auto
+          - xqc
+          - alanzoka
+          - djmariio
+          - trymacs
+          - montanablack88
           - kaicenat
           - ishowspeed
-          - xqc
-          - caseoh
-          - jynxzi
-          - fanum
-          - ray
-          - adin_ross
-          - mixigaming
-          - thaygiaoba
-      clip_url:
-        description: 'Optional direct clip URL (Twitch/YouTube/Kick). Leave empty for auto-trending.'
-        required: false
-        default: ''
       publish:
-        description: 'Publish automatically to YouTube, FB Reels, IG Reels'
+        description: 'Publish automatically to FB Reels & IG Reels'
         required: true
         default: true
         type: boolean
@@ -58,17 +55,18 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install yt-dlp python-dotenv
 
-      - name: Run Snickerly Clipper Engine
+      - name: Run Snickerly Clipper Engine (24/7 GTA VI 30k+ Viewers)
         env:
-          YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
-          TIKTOK_ACCESS_TOKEN: ${{ secrets.TIKTOK_ACCESS_TOKEN }}
-          STREAMER_ID: ${{ github.event.inputs.streamer_id || 'kaicenat' }}
-          CLIP_URL: ${{ github.event.inputs.clip_url || '' }}
-          PUBLISH_NOW: ${{ github.event.inputs.publish || 'true' }}
+          AUTO_DISCOVER: ${{ github.event.inputs.auto_discover || 'true' }}
+          STREAMER_ID: ${{ github.event.inputs.streamer_id || 'xqc' }}
+          PUBLISH_FLAG: ${{ github.event.inputs.publish || 'true' }}
         run: |
-          python stream_clipper/streamer_clipper.py
+          if [ "$AUTO_DISCOVER" = "true" ]; then
+            python stream_clipper/streamer_clipper.py --auto-discover --min-viewers 30000 --publish
+          else
+            python stream_clipper/streamer_clipper.py --streamer "$STREAMER_ID" --publish
+          fi

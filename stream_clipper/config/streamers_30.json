@@ -5,7 +5,11 @@
       "name": "Kai Cenat",
       "platform": "twitch",
       "channel": "kaicenat",
-      "category_focus": ["GTA 6", "Just Chatting", "Gaming"],
+      "category_focus": [
+        "GTA 6",
+        "Just Chatting",
+        "Gaming"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -13,7 +17,11 @@
       "name": "IShowSpeed",
       "platform": "youtube",
       "channel": "IShowSpeed",
-      "category_focus": ["GTA 6", "Gaming", "IRL"],
+      "category_focus": [
+        "GTA 6",
+        "Gaming",
+        "IRL"
+      ],
       "facecam_layout": "center_zoom"
     },
     {
@@ -21,15 +29,22 @@
       "name": "xQc",
       "platform": "twitch",
       "channel": "xqc",
-      "category_focus": ["GTA 6", "Variety"],
-      "facecam_layout": "top_split"
+      "category_focus": [
+        "GTA 6",
+        "Variety"
+      ],
+      "facecam_layout": "stacked_bottom_left"
     },
     {
       "id": "caseoh",
       "name": "CaseOh",
       "platform": "twitch",
       "channel": "caseoh_",
-      "category_focus": ["Gaming", "Horror", "GTA 6"],
+      "category_focus": [
+        "Gaming",
+        "Horror",
+        "GTA 6"
+      ],
       "facecam_layout": "center_zoom"
     },
     {
@@ -37,7 +52,10 @@
       "name": "Jynxzi",
       "platform": "twitch",
       "channel": "jynxzi",
-      "category_focus": ["Gaming", "GTA 6"],
+      "category_focus": [
+        "Gaming",
+        "GTA 6"
+      ],
       "facecam_layout": "center_zoom"
     },
     {
@@ -45,7 +63,11 @@
       "name": "Fanum",
       "platform": "twitch",
       "channel": "fanum",
-      "category_focus": ["GTA 6", "AMP", "IRL"],
+      "category_focus": [
+        "GTA 6",
+        "AMP",
+        "IRL"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -53,7 +75,10 @@
       "name": "Ray (Rayasianboy)",
       "platform": "twitch",
       "channel": "rayasianboy",
-      "category_focus": ["IRL", "Gaming"],
+      "category_focus": [
+        "IRL",
+        "Gaming"
+      ],
       "facecam_layout": "center_zoom"
     },
     {
@@ -61,7 +86,10 @@
       "name": "Agent 00",
       "platform": "twitch",
       "channel": "agent00",
-      "category_focus": ["GTA 6", "AMP"],
+      "category_focus": [
+        "GTA 6",
+        "AMP"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -69,7 +97,10 @@
       "name": "Duke Dennis",
       "platform": "twitch",
       "channel": "dukedennis",
-      "category_focus": ["GTA 6", "AMP"],
+      "category_focus": [
+        "GTA 6",
+        "AMP"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -77,7 +108,10 @@
       "name": "Adin Ross",
       "platform": "kick",
       "channel": "adinross",
-      "category_focus": ["GTA 6", "IRL"],
+      "category_focus": [
+        "GTA 6",
+        "IRL"
+      ],
       "facecam_layout": "center_zoom"
     },
     {
@@ -85,7 +119,10 @@
       "name": "PlaqueBoyMax",
       "platform": "twitch",
       "channel": "plaqueboymax",
-      "category_focus": ["Gaming", "Reaction"],
+      "category_focus": [
+        "Gaming",
+        "Reaction"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -93,7 +130,11 @@
       "name": "FlightReacts",
       "platform": "youtube",
       "channel": "FlightReacts",
-      "category_focus": ["NBA 2K", "GTA 6", "Reactions"],
+      "category_focus": [
+        "NBA 2K",
+        "GTA 6",
+        "Reactions"
+      ],
       "facecam_layout": "center_zoom"
     },
     {
@@ -101,7 +142,10 @@
       "name": "Asmongold",
       "platform": "twitch",
       "channel": "zackrawrr",
-      "category_focus": ["Gaming", "Reaction"],
+      "category_focus": [
+        "Gaming",
+        "Reaction"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -109,7 +153,10 @@
       "name": "Tarik",
       "platform": "twitch",
       "channel": "tarik",
-      "category_focus": ["FPS", "GTA 6"],
+      "category_focus": [
+        "FPS",
+        "GTA 6"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -117,7 +164,10 @@
       "name": "Shroud",
       "platform": "twitch",
       "channel": "shroud",
-      "category_focus": ["FPS", "GTA 6"],
+      "category_focus": [
+        "FPS",
+        "GTA 6"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -125,7 +175,10 @@
       "name": "loltyler1",
       "platform": "twitch",
       "channel": "loltyler1",
-      "category_focus": ["Rage", "GTA 6"],
+      "category_focus": [
+        "Rage",
+        "GTA 6"
+      ],
       "facecam_layout": "center_zoom"
     },
     {
@@ -133,7 +186,10 @@
       "name": "Clix",
       "platform": "twitch",
       "channel": "clix",
-      "category_focus": ["Gaming", "GTA 6"],
+      "category_focus": [
+        "Gaming",
+        "GTA 6"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -141,7 +197,10 @@
       "name": "Ludwig",
       "platform": "youtube",
       "channel": "ludwig",
-      "category_focus": ["Variety", "Events"],
+      "category_focus": [
+        "Variety",
+        "Events"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -149,7 +208,10 @@
       "name": "Valkyrae",
       "platform": "youtube",
       "channel": "Valkyrae",
-      "category_focus": ["GTA 6 RP", "Variety"],
+      "category_focus": [
+        "GTA 6 RP",
+        "Variety"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -157,7 +219,10 @@
       "name": "Pokimane",
       "platform": "twitch",
       "channel": "pokimane",
-      "category_focus": ["Variety", "GTA 6"],
+      "category_focus": [
+        "Variety",
+        "GTA 6"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -165,7 +230,10 @@
       "name": "Dr Disrespect",
       "platform": "youtube",
       "channel": "DrDisrespect",
-      "category_focus": ["Gaming", "GTA 6"],
+      "category_focus": [
+        "Gaming",
+        "GTA 6"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -173,7 +241,10 @@
       "name": "TimTheTatman",
       "platform": "youtube",
       "channel": "TimTheTatman",
-      "category_focus": ["Gaming", "GTA 6"],
+      "category_focus": [
+        "Gaming",
+        "GTA 6"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -181,7 +252,10 @@
       "name": "HasanAbi",
       "platform": "twitch",
       "channel": "hasanabi",
-      "category_focus": ["Reaction", "News"],
+      "category_focus": [
+        "Reaction",
+        "News"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -189,7 +263,10 @@
       "name": "Papaplatte",
       "platform": "twitch",
       "channel": "papaplatte",
-      "category_focus": ["Gaming", "IRL"],
+      "category_focus": [
+        "Gaming",
+        "IRL"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -197,7 +274,10 @@
       "name": "Ibai",
       "platform": "twitch",
       "channel": "ibai",
-      "category_focus": ["Gaming", "Events"],
+      "category_focus": [
+        "Gaming",
+        "Events"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -205,7 +285,10 @@
       "name": "Auronplay",
       "platform": "twitch",
       "channel": "auronplay",
-      "category_focus": ["GTA 6 RP", "Gaming"],
+      "category_focus": [
+        "GTA 6 RP",
+        "Gaming"
+      ],
       "facecam_layout": "top_split"
     },
     {
@@ -213,23 +296,33 @@
       "name": "Rubius",
       "platform": "twitch",
       "channel": "rubius",
-      "category_focus": ["Gaming", "GTA 6"],
+      "category_focus": [
+        "Gaming",
+        "GTA 6"
+      ],
       "facecam_layout": "top_split"
     },
     {
       "id": "mixigaming",
-      "name": "Độ Mixi (MixiGaming)",
+      "name": "\u0110\u1ed9 Mixi (MixiGaming)",
       "platform": "youtube",
       "channel": "MixiGaming",
-      "category_focus": ["GTA 6", "Gaming", "Talkshow"],
+      "category_focus": [
+        "GTA 6",
+        "Gaming",
+        "Talkshow"
+      ],
       "facecam_layout": "top_split"
     },
     {
       "id": "thaygiaoba",
-      "name": "Thầy Giáo Ba",
+      "name": "Th\u1ea7y Gi\u00e1o Ba",
       "platform": "youtube",
       "channel": "ThayGiaoBa",
-      "category_focus": ["Gaming", "Comedy"],
+      "category_focus": [
+        "Gaming",
+        "Comedy"
+      ],
       "facecam_layout": "center_zoom"
     },
     {
@@ -237,8 +330,40 @@
       "name": "Cris Devil Gamer",
       "platform": "youtube",
       "channel": "CrisDevilGamer",
-      "category_focus": ["GTA 6", "Gaming", "Reaction"],
+      "category_focus": [
+        "GTA 6",
+        "Gaming",
+        "Reaction"
+      ],
       "facecam_layout": "center_zoom"
+    },
+    {
+      "id": "alanzoka",
+      "name": "Alanzoka",
+      "platform": "twitch",
+      "channel": "alanzoka",
+      "facecam_layout": "stacked_top_left"
+    },
+    {
+      "id": "djmariio",
+      "name": "DjMaRiiO",
+      "platform": "twitch",
+      "channel": "djmariio",
+      "facecam_layout": "stacked_top_left"
+    },
+    {
+      "id": "trymacs",
+      "name": "Trymacs",
+      "platform": "twitch",
+      "channel": "trymacs",
+      "facecam_layout": "stacked_top_left"
+    },
+    {
+      "id": "montanablack88",
+      "name": "MontanaBlack88",
+      "platform": "twitch",
+      "channel": "montanablack88",
+      "facecam_layout": "stacked_bottom_right"
     }
   ]
 }

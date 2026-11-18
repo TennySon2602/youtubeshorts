@@ -87,10 +87,11 @@ def main():
             print("\nĐã hủy.")
             return
 
-    # Check video to upload
-    video_path = Path("output/gta6_lucia_ankle_monitor_final_short.mp4")
+    # Check video to upload - Use the Police AI short
+    video_path = Path("output/gta6_police_ai_system_final_short.mp4")
     if not video_path.exists():
-        # Fallback to any mp4 in output
+        video_path = Path("output/gta6_lucia_ankle_monitor_final_short.mp4")
+    if not video_path.exists():
         mp4_list = list(Path("output").glob("*_final_short.mp4"))
         if mp4_list:
             video_path = mp4_list[0]
@@ -99,9 +100,9 @@ def main():
             return
 
     print(f"\n🎬 Chuẩn bị đăng video: {video_path.name}")
-    title = "GTA 6 - The Mystery of Lucia's Ankle Monitor"
-    description = "Why does Lucia have a tracker in GTA VI? Here is the secret storyline detail Rockstar hid in plain sight."
-    tags = ["GTA6", "GTAVI", "RockstarGames", "GamingReels", "Reels"]
+    title = "GTA 6 Leaked Police AI System Will Terrify You 💀"
+    description = "Rockstar Games completely overhauled the law enforcement system in GTA VI. Here is how advanced the new police AI actually is."
+    tags = ["GTA6", "GTAVI", "RockstarGames", "PoliceAI", "Gaming", "Reels"]
 
     from meta_uploader import upload_facebook_reel, upload_instagram_reel
     tags_str = " ".join([f"#{t.strip('#')}" for t in tags])

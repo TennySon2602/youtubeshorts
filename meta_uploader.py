@@ -138,7 +138,8 @@ def upload_instagram_reel(file_path: str, caption: str, ig_user_id: str = None, 
         "file_size": str(file_size)
     }
     with open(video_path, "rb") as f:
-        upload_res = requests.post(upload_uri, headers=headers, data=f, timeout=120)
+        raw_video_bytes = f.read()
+    upload_res = requests.post(upload_uri, headers=headers, data=raw_video_bytes, timeout=120)
 
     if upload_res.status_code != 200:
         raise RuntimeError(f"Failed to upload IG Reel bytes: {upload_res.text}")
