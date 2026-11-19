@@ -33,6 +33,7 @@ on:
         type: choice
         options:
           - 'kaicenat'
+          - 'caseoh_'
           - 'alanzoka'
           - 'xqc'
           - 'djmariio'
@@ -41,13 +42,15 @@ on:
           - 'theburntpeanut'
           - 'ohnepixel'
           - 'ishowspeed'
-          - 'caseoh'
           - 'jynxzi'
       publish:
         description: 'Publish automatically to Facebook Reels & Instagram Reels'
         required: true
         default: true
         type: boolean
+
+permissions:
+  contents: write
 
 jobs:
   # 1. Batch Mode (Default & Scheduled): Auto-discovers & processes top N streamers >= 30,000 viewers
@@ -60,6 +63,9 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -77,22 +83,32 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Multi-Streamer Clipper Engine
+      - name: Run Multi-Streamer Clipper Engine (Chat Spike Detection Enabled)
         env:
           YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
           MAX_STREAMERS: ${{ github.event.inputs.max_streamers || '3' }}
-          PUBLISH_FLAG: ${{ github.event.inputs.publish || 'true' }}
         run: |
-          PUB_ARG=""
-          if [ "$PUBLISH_FLAG" = "true" ]; then
-            PUB_ARG="--publish"
+          PUB_ARG="--publish"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.publish }}" = "false" ]; then
+            PUB_ARG=""
           fi
+          echo "🚀 Executing Streamer Clipper with PUB_ARG='$PUB_ARG' and MAX_STREAMERS='$MAX_STREAMERS'..."
           python stream_clipper/streamer_clipper.py --auto-discover --min-viewers 30000 --max-streamers "$MAX_STREAMERS" $PUB_ARG
 
-  # 2. Matrix Parallel Mode: Runs 5 parallel Ubuntu runners concurrently for Top 5 Streamers
+      - name: Commit & Push Processed Clips History
+        if: always()
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git pull --rebase origin main || true
+          git add stream_clipper/config/processed_clips.json || true
+          git commit -m "chore: save processed clips history [skip ci]" || echo "No new processed clips"
+          git push origin main || echo "Git push skipped"
+
+  # 2. Matrix Parallel Mode: Runs parallel Ubuntu runners concurrently for Top Streamers
   matrix_parallel_clipper:
     name: Parallel Runner (${{ matrix.streamer }})
     if: github.event.inputs.execution_mode == 'matrix_parallel'
@@ -101,7 +117,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        streamer: [kaicenat, alanzoka, xqc, djmariio, montanablack88]
+        streamer: [kaicenat, caseoh_, alanzoka, xqc, montanablack88]
 
     steps:
       - name: Checkout Code
@@ -129,11 +145,10 @@ jobs:
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
-          PUBLISH_FLAG: ${{ github.event.inputs.publish || 'true' }}
         run: |
-          PUB_ARG=""
-          if [ "$PUBLISH_FLAG" = "true" ]; then
-            PUB_ARG="--publish"
+          PUB_ARG="--publish"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.publish }}" = "false" ]; then
+            PUB_ARG=""
           fi
           python stream_clipper/streamer_clipper.py --streamer "${{ matrix.streamer }}" $PUB_ARG
 
@@ -147,6 +162,9 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -170,10 +188,19 @@ jobs:
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
-          PUBLISH_FLAG: ${{ github.event.inputs.publish || 'true' }}
         run: |
-          PUB_ARG=""
-          if [ "$PUBLISH_FLAG" = "true" ]; then
-            PUB_ARG="--publish"
+          PUB_ARG="--publish"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.publish }}" = "false" ]; then
+            PUB_ARG=""
           fi
           python stream_clipper/streamer_clipper.py --streamer "${{ github.event.inputs.specific_streamer }}" $PUB_ARG
+
+      - name: Commit & Push Processed Clips History
+        if: always()
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git pull --rebase origin main || true
+          git add stream_clipper/config/processed_clips.json || true
+          git commit -m "chore: save processed clips history [skip ci]" || echo "No new processed clips"
+          git push origin main || echo "Git push skipped"

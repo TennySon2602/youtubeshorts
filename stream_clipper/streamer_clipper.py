@@ -37,6 +37,7 @@ OUTPUT_DIR = BASE_DIR / "output"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 from snickerly_editor import render_snickerly_video
+from chat_highlight_detector import rank_clips_by_chat_hype
 
 TWITCH_HEADERS = {"Client-Id": "kimne78kx3ncx6brgo4mv6wki5h1ko"}
 
@@ -114,8 +115,8 @@ def search_live_gta_streamers(min_viewers: int = 30000) -> list:
     streamers.sort(key=lambda x: x["viewersCount"], reverse=True)
     return streamers
 
-def get_streamer_clips(login: str, limit: int = 5) -> list:
-    """Fetches recent viral clips for a streamer from Twitch GQL"""
+def get_streamer_clips(login: str, limit: int = 10) -> list:
+    """Fetches recent viral clips for a streamer from Twitch GQL including VOD and offset info"""
     for time_filter in ["LAST_DAY", "LAST_WEEK", "ALL_TIME"]:
         query = f"""
         query {{
@@ -129,6 +130,11 @@ def get_streamer_clips(login: str, limit: int = 5) -> list:
                   title
                   viewCount
                   durationSeconds
+                  videoOffsetSeconds
+                  video {{
+                    id
+                    title
+                  }}
                   url
                 }}
               }}
@@ -156,6 +162,9 @@ def get_streamer_clips(login: str, limit: int = 5) -> list:
                     "title": n.get("title"),
                     "viewCount": n.get("viewCount", 0),
                     "duration": n.get("durationSeconds", 30),
+                    "durationSeconds": n.get("durationSeconds", 30),
+                    "videoOffsetSeconds": n.get("videoOffsetSeconds"),
+                    "video": n.get("video") or {},
                     "url": n.get("url")
                 })
             if clips:
@@ -280,13 +289,16 @@ def process_and_publish_stream_clip(
     streamer_name: str,
     streamer_login: str,
     clip_title: str,
-    publish: bool = True
+    publish: bool = True,
+    peak_second: int = None
 ) -> str:
     """Complete pipeline: Download -> Transcribe -> Snickerly Edit -> Publish"""
     print(f"\n============================================================")
     print(f"🎬 PROCESSING CLIP: {streamer_name} (@{streamer_login})")
     print(f"Title: {clip_title}")
     print(f"URL: {clip_url}")
+    if peak_second is not None:
+        print(f"🔥 Chat Spike Peak Detected at: {peak_second}s")
     print(f"============================================================")
 
     # 1. Download
@@ -303,6 +315,13 @@ def process_and_publish_stream_clip(
 
     # 4. Generate Snickerly cues
     events = detect_snickerly_cues(words, duration)
+
+    # 4.1 Inject Chat Peak Boom & Zoom if detected
+    if peak_second is not None and 1 <= peak_second < duration - 1:
+        if not any(abs(e.get("time", 0) - peak_second) < 2.5 for e in events if e.get("type") == "vine_boom"):
+            print(f"💥 Injecting Vine Boom & punch-in zoom at chat reaction peak ({peak_second}s)!")
+            events.append({"type": "vine_boom", "time": float(peak_second), "zoom": True})
+            events.sort(key=lambda x: x.get("time", x.get("start", 0)))
 
     # 5. Determine layout
     layout = get_streamer_layout(streamer_login)
@@ -363,23 +382,14 @@ def process_and_publish_stream_clip(
 
     return rendered_file
 
-def run_cli():
-    parser = argparse.ArgumentParser(description="Snickerly 24/7 Autonomous Multi-Streamer Clipper")
-    parser.add_argument("--auto-discover", action="store_true", help="Auto-discover live GTA streamers >= 30k viewers")
-    parser.add_argument("--min-viewers", type=int, default=30000, help="Minimum viewers threshold (default 30000)")
-    parser.add_argument("--max-streamers", type=int, default=3, help="Max number of distinct streamers to process in one run (default 3)")
-    parser.add_argument("--streamer", type=str, default="xqc", help="Target streamer login (or comma-separated logins, e.g. xqc,alanzoka,djmariio)")
-    parser.add_argument("--publish", action="store_true", help="Publish to Meta Reels")
-    args = parser.parse_args()
-
-    processed_history = load_processed_clips()
-
+def run_single_cycle(args, processed_history):
+    """Executes a single clipping and publishing cycle"""
     if args.auto_discover:
-        print(f"🔍 Searching for live GTA streamers with >= {args.min_viewers:,} viewers...")
+        print(f"\n🔍 Searching for live GTA streamers with >= {args.min_viewers:,} viewers...")
         live_streamers = search_live_gta_streamers(min_viewers=args.min_viewers)
         if not live_streamers:
-            print(f"❌ No live GTA streamers found with >= {args.min_viewers:,} viewers. Exiting.")
-            return
+            print(f"❌ No live GTA streamers found with >= {args.min_viewers:,} viewers.")
+            return 0
 
         print(f"✨ Found {len(live_streamers)} streamers with >= {args.min_viewers:,} viewers:")
         for s in live_streamers:
@@ -392,66 +402,114 @@ def run_cli():
                 break
 
             print(f"\nChecking clips for {target['displayName']} (@{target['login']})...")
-            clips = get_streamer_clips(target['login'], limit=5)
+            clips = get_streamer_clips(target['login'], limit=10)
             if not clips:
                 print(f"   No recent clips for {target['login']}. Skipping.")
                 continue
 
-            # Pick top clip not yet processed
-            chosen_clip = None
-            for c in clips:
-                clip_id = c.get("slug") or c.get("url") or c.get("id")
-                if clip_id not in processed_history:
-                    chosen_clip = c
-                    break
+            unprocessed_clips = [
+                c for c in clips
+                if (c.get("slug") or c.get("url") or c.get("id")) not in processed_history
+            ]
 
-            if not chosen_clip:
-                print(f"   All top clips for {target['login']} have already been processed previously. Skipping.")
+            if not unprocessed_clips:
+                print(f"   All candidate clips for {target['login']} were already processed. Skipping.")
                 continue
 
-            print(f"🎯 [{processed_count + 1}/{args.max_streamers}] Selected clip: '{chosen_clip['title']}' ({chosen_clip['url']})")
+            # Rank clips using Chat Spike Highlight Detector (LOL, LMAO, WTF, KEKW spikes)
+            ranked_clips = rank_clips_by_chat_hype(unprocessed_clips)
+            chosen_clip = ranked_clips[0]
+
+            print(f"\n🎯 [{processed_count + 1}/{args.max_streamers}] Top Clip Selected: '{chosen_clip['title']}'")
+            print(f"   Hype Score: {chosen_clip.get('chat_score', 0)} | Chat Peak: {chosen_clip.get('peak_second', 0)}s | URL: {chosen_clip['url']}")
+
             try:
                 process_and_publish_stream_clip(
                     clip_url=chosen_clip['url'],
                     streamer_name=target['displayName'],
                     streamer_login=target['login'],
                     clip_title=chosen_clip['title'],
-                    publish=args.publish
+                    publish=args.publish,
+                    peak_second=chosen_clip.get('peak_second')
                 )
-                mark_clip_processed(chosen_clip.get("slug") or chosen_clip.get("url"))
+                clip_id = chosen_clip.get("slug") or chosen_clip.get("url")
+                mark_clip_processed(clip_id)
+                processed_history.add(clip_id)
                 processed_count += 1
             except Exception as e:
                 print(f"⚠️ Error processing {target['login']}: {e}")
 
-        print(f"\n🏁 Finished batch run: Processed {processed_count} streamers.")
+        print(f"\n🏁 Finished batch cycle: Processed {processed_count} streamers.")
+        return processed_count
 
     else:
-        # Target specific streamer or list of comma-separated streamers
         streamer_logins = [s.strip() for s in args.streamer.split(",") if s.strip()]
+        processed_count = 0
         for login in streamer_logins:
             print(f"\nFetching clips for streamer @{login}...")
-            clips = get_streamer_clips(login, limit=5)
+            clips = get_streamer_clips(login, limit=10)
             if not clips:
                 print(f"❌ No clips found for @{login}")
                 continue
 
-            chosen_clip = None
-            for c in clips:
-                clip_id = c.get("slug") or c.get("url") or c.get("id")
-                if clip_id not in processed_history:
-                    chosen_clip = c
-                    break
-            if not chosen_clip:
-                chosen_clip = clips[0]
+            unprocessed_clips = [
+                c for c in clips
+                if (c.get("slug") or c.get("url") or c.get("id")) not in processed_history
+            ]
 
-            process_and_publish_stream_clip(
-                clip_url=chosen_clip['url'],
-                streamer_name=login.upper(),
-                streamer_login=login,
-                clip_title=chosen_clip['title'],
-                publish=args.publish
-            )
-            mark_clip_processed(chosen_clip.get("slug") or chosen_clip.get("url"))
+            if not unprocessed_clips:
+                print(f"   All candidate clips for @{login} were already processed.")
+                unprocessed_clips = clips
+
+            ranked_clips = rank_clips_by_chat_hype(unprocessed_clips)
+            chosen_clip = ranked_clips[0]
+
+            print(f"\n🎯 Top Clip Selected for @{login}: '{chosen_clip['title']}'")
+            print(f"   Hype Score: {chosen_clip.get('chat_score', 0)} | Chat Peak: {chosen_clip.get('peak_second', 0)}s")
+
+            try:
+                process_and_publish_stream_clip(
+                    clip_url=chosen_clip['url'],
+                    streamer_name=login.upper(),
+                    streamer_login=login,
+                    clip_title=chosen_clip['title'],
+                    publish=args.publish,
+                    peak_second=chosen_clip.get('peak_second')
+                )
+                clip_id = chosen_clip.get("slug") or chosen_clip.get("url")
+                mark_clip_processed(clip_id)
+                processed_history.add(clip_id)
+                processed_count += 1
+            except Exception as e:
+                print(f"⚠️ Error processing @{login}: {e}")
+        return processed_count
+
+def run_cli():
+    import time
+    parser = argparse.ArgumentParser(description="Snickerly 24/7 Autonomous Multi-Streamer Clipper")
+    parser.add_argument("--auto-discover", action="store_true", help="Auto-discover live GTA streamers >= 30k viewers")
+    parser.add_argument("--min-viewers", type=int, default=30000, help="Minimum viewers threshold (default 30000)")
+    parser.add_argument("--max-streamers", type=int, default=3, help="Max number of distinct streamers to process in one run (default 3)")
+    parser.add_argument("--streamer", type=str, default="xqc", help="Target streamer login (or comma-separated logins, e.g. xqc,alanzoka,djmariio)")
+    parser.add_argument("--publish", action="store_true", help="Publish to Meta Reels & YouTube Shorts")
+    parser.add_argument("--loop", action="store_true", help="Run continuously 24/7 in a loop")
+    parser.add_argument("--interval", type=int, default=900, help="Interval between runs in loop mode (default: 900s = 15m)")
+    args = parser.parse_args()
+
+    processed_history = load_processed_clips()
+
+    if args.loop:
+        print(f"\n🔄 STARTING 24/7 AUTONOMOUS CLIPPER ENGINE (Interval: {args.interval}s / {args.interval//60} mins)...")
+        print("Press Ctrl+C to terminate.")
+        while True:
+            try:
+                run_single_cycle(args, processed_history)
+            except Exception as e:
+                print(f"⚠️ Unexpected error in loop: {e}")
+            print(f"\n⏳ Sleeping for {args.interval} seconds until next cycle ({time.strftime('%H:%M:%S')})...\n")
+            time.sleep(args.interval)
+    else:
+        run_single_cycle(args, processed_history)
 
 if __name__ == "__main__":
     run_cli()
