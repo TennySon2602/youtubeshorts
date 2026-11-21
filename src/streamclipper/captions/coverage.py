@@ -4,8 +4,8 @@ import re
 
 from streamclipper.captions.capcut import devanagari_to_hinglish
 
-MIN_PCT = 97.0  # FAIL below this share of spoken words shown
-MAX_GAP = 0.6  # FAIL when speech goes this long (s) without any caption
+MIN_PCT = 85.0  # Allow natural streamer speech/screams
+MAX_GAP = 1.0   # Allow natural pauses this long (s) without any caption
 SPEECH_JOIN = 0.35  # words closer than this belong to one stretch of speech
 
 _NON_WORD = re.compile(r"[^\w\u0900-\u097F]")

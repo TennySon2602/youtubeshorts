@@ -36,7 +36,7 @@ def download_audio(url: str, work_dir: Path) -> Path:
         return done[0]
     run_cmd(
         ytdlp_cmd()
-        + ["-f", "ba[ext=m4a]/ba", "--no-playlist", "--no-progress", "-o", str(work_dir / f"{stem}.%(ext)s"), url],
+        + ["-f", "ba[ext=m4a]/ba/b", "--no-playlist", "--no-progress", "-o", str(work_dir / f"{stem}.%(ext)s"), url],
         "yt-dlp audio download",
         hint="check the URL/network; update with: python -m pip install -U yt-dlp",
     )
@@ -104,7 +104,7 @@ def download_lowres_video(url: str, work_dir: Path, max_height: int = 360) -> Pa
     print(f"Downloading a {max_height}p video-only copy for HUD detection ...")
     run_cmd(
         ytdlp_cmd()
-        + ["-f", f"bv*[height<={max_height}][ext=mp4]/bv*[height<={max_height}]/wv*", "--no-playlist"]
+        + ["-f", f"bv*[height<={max_height}][ext=mp4]/bv*[height<={max_height}]/b[height<={max_height}]/b", "--no-playlist"]
         + ["--no-progress", "--continue", "-o", str(work_dir / f"{stem}.%(ext)s"), url],
         "yt-dlp low-res video download",
         hint="check the URL/network; update with: python -m pip install -U yt-dlp",
@@ -130,7 +130,7 @@ def download_slice(url: str, start: float, end: float, out: Path, max_height: in
     for old in out.parent.glob(f"{out.stem}.dl_tmp.*"):
         old.unlink()
     fmt = (
-        f"bv*[height<={max_height}][vcodec^=avc1]+ba[acodec^=mp4a]/bv*[height<={max_height}]+ba/b[height<={max_height}]"
+        f"bv*[height<={max_height}][vcodec^=avc1]+ba[acodec^=mp4a]/bv*[height<={max_height}]+ba/b[height<={max_height}]/b"
     )
     argv = ytdlp_cmd() + [
         "-f",

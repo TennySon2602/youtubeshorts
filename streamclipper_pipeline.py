@@ -14,6 +14,7 @@ import os
 import sys
 import json
 import time
+import re
 import argparse
 import subprocess
 import requests
@@ -110,47 +111,143 @@ def search_live_gta_streamers(min_viewers: int = 30000) -> list:
     streamers.sort(key=lambda x: x["viewersCount"], reverse=True)
     return streamers
 
-def get_streamer_source(login: str) -> dict:
+def resolve_vod_or_url(url: str, limit: int = 2) -> list:
     """
-    Finds the best source for a streamer:
-    1. Check for live stream VOD on Twitch
-    2. Fallback to top recent clip
+    Intelligently resolves any Twitch/YouTube URL:
+    - If Twitch VOD (especially long streams like 47h): finds the top viral clips from this VOD
+      so that we don't attempt to download 47 hours of audio/chat.
+    - If Twitch clip: returns the clip
+    - Otherwise returns the URL
     """
-    # 1. Check latest VOD
-    query_vod = f"""
-    query {{
-      user(login: "{login}") {{
-        displayName
-        videos(first: 1, type: ARCHIVE) {{
-          edges {{
-            node {{
-              id
-              title
-              lengthSeconds
+    vod_match = re.search(r"twitch\.tv/videos/(\d+)", url)
+    if vod_match:
+        vod_id = vod_match.group(1)
+        print(f"🔍 Analyzing Twitch VOD ID: {vod_id}...")
+
+        # Query VOD info & owner
+        q_vod = f"""
+        query {{
+          video(id: "{vod_id}") {{
+            id
+            title
+            lengthSeconds
+            owner {{
+              displayName
+              login
             }}
           }}
         }}
-      }}
-    }}
-    """
-    try:
-        resp = requests.post("https://gql.twitch.tv/gql", headers=TWITCH_HEADERS, json={"query": query_vod}, timeout=10)
-        videos = resp.json().get("data", {}).get("user", {}).get("videos", {}).get("edges", [])
-        if videos:
-            node = videos[0]["node"]
-            vod_id = node.get("id")
-            length_sec = node.get("lengthSeconds", 0)
-            if length_sec > 60:
-                return {
-                    "type": "vod",
-                    "id": f"vod_{vod_id}",
-                    "url": f"https://www.twitch.tv/videos/{vod_id}",
-                    "title": node.get("title", f"{login} GTA Stream")
-                }
-    except Exception as e:
-        print(f"⚠️ Error checking VOD for {login}: {e}")
+        """
+        try:
+            r = requests.post("https://gql.twitch.tv/gql", headers=TWITCH_HEADERS, json={"query": q_vod}, timeout=10)
+            v_data = r.json().get("data", {}).get("video", {})
+            if not v_data:
+                return [{"url": url, "title": "Twitch VOD", "streamer": "Streamer", "id": f"vod_{vod_id}"}]
 
-    # 2. Check recent clips
+            owner_name = v_data.get("owner", {}).get("displayName", "Streamer")
+            owner_login = v_data.get("owner", {}).get("login", "")
+            duration_s = v_data.get("lengthSeconds", 0)
+            vod_title = v_data.get("title", "")
+            print(f"✨ VOD: '{vod_title}' by {owner_name} (@{owner_login}) - Duration: {duration_s/3600:.1f} hours")
+
+            # If long stream (> 1800s / 30m), look for viral clips created from this VOD
+            if duration_s > 1800 and owner_login:
+                print(f"⚡ Long stream ({duration_s/3600:.1f}h) detected! Querying top viral clips from this VOD...")
+                q_clips = f"""
+                query {{
+                  user(login: "{owner_login}") {{
+                    clips(first: 50, criteria: {{ filter: ALL_TIME }}) {{
+                      edges {{
+                        node {{
+                          id
+                          slug
+                          title
+                          viewCount
+                          durationSeconds
+                          videoOffsetSeconds
+                          url
+                          video {{
+                            id
+                          }}
+                        }}
+                      }}
+                    }}
+                  }}
+                }}
+                """
+                r2 = requests.post("https://gql.twitch.tv/gql", headers=TWITCH_HEADERS, json={"query": q_clips}, timeout=10)
+                edges = r2.json().get("data", {}).get("user", {}).get("clips", {}).get("edges", [])
+
+                matched_clips = []
+                for edge in edges:
+                    node = edge.get("node", {})
+                    vid_obj = node.get("video") or {}
+                    if str(vid_obj.get("id")) == str(vod_id):
+                        matched_clips.append({
+                            "url": node.get("url"),
+                            "title": node.get("title"),
+                            "slug": node.get("slug"),
+                            "views": node.get("viewCount", 0),
+                            "duration": node.get("durationSeconds", 30),
+                            "streamer": owner_name,
+                            "login": owner_login,
+                            "id": node.get("slug") or node.get("id")
+                        })
+
+                # Sort by views
+                matched_clips.sort(key=lambda x: x["views"], reverse=True)
+                if matched_clips:
+                    print(f"🔥 Found {len(matched_clips)} viral moments from this stream:")
+                    for idx, c in enumerate(matched_clips[:limit]):
+                        print(f"   [{idx+1}] {c['views']:,} views: '{c['title']}' ({c['url']})")
+                    return matched_clips[:limit]
+                else:
+                    print(f"ℹ️ No viewer clips found for VOD {vod_id}. Proceeding with VOD source.")
+                    return [{
+                        "url": url,
+                        "title": vod_title or "Twitch VOD",
+                        "streamer": owner_name,
+                        "id": f"vod_{vod_id}"
+                    }]
+        except Exception as e:
+            print(f"⚠️ Error resolving VOD {vod_id}: {e}")
+            return [{"url": url, "title": "Twitch VOD", "streamer": "Streamer", "id": f"vod_{vod_id}"}]
+
+    # Check if direct clip URL
+    clip_match = re.search(r"twitch\.tv/[^/]+/clip/([^/?]+)", url) or re.search(r"clips\.twitch\.tv/([^/?]+)", url)
+    if clip_match:
+        slug = clip_match.group(1)
+        q_clip = f"""
+        query {{
+          clip(slug: "{slug}") {{
+            id
+            title
+            viewCount
+            broadcaster {{
+              displayName
+              login
+            }}
+          }}
+        }}
+        """
+        try:
+            r = requests.post("https://gql.twitch.tv/gql", headers=TWITCH_HEADERS, json={"query": q_clip}, timeout=10)
+            c_data = r.json().get("data", {}).get("clip", {})
+            streamer_name = c_data.get("broadcaster", {}).get("displayName", "Streamer")
+            title = c_data.get("title", "GTA Stream Clip")
+            return [{"url": url, "title": title, "streamer": streamer_name, "id": slug}]
+        except Exception:
+            return [{"url": url, "title": "Twitch Clip", "streamer": "Streamer", "id": slug}]
+
+    return [{"url": url, "title": "Stream Source", "streamer": "Streamer", "id": url}]
+
+def get_streamer_source(login: str) -> dict:
+    """
+    Finds the best source for a streamer:
+    1. Check top recent clips first (fastest, guaranteed viral moments)
+    2. Fallback to latest VOD (resolved via resolve_vod_or_url)
+    """
+    # 1. Check recent clips
     query_clip = f"""
     query {{
       user(login: "{login}") {{
@@ -172,23 +269,64 @@ def get_streamer_source(login: str) -> dict:
     """
     try:
         resp = requests.post("https://gql.twitch.tv/gql", headers=TWITCH_HEADERS, json={"query": query_clip}, timeout=10)
-        clips = resp.json().get("data", {}).get("user", {}).get("clips", {}).get("edges", [])
+        u_data = resp.json().get("data", {}).get("user", {})
+        display_name = u_data.get("displayName", login)
+        clips = u_data.get("clips", {}).get("edges", [])
         if clips:
             node = clips[0]["node"]
             return {
                 "type": "clip",
                 "id": node.get("slug") or node.get("id"),
                 "url": node.get("url"),
-                "title": node.get("title", f"{login} GTA Clip")
+                "title": node.get("title", f"{display_name} GTA Clip"),
+                "streamer": display_name
             }
     except Exception as e:
         print(f"⚠️ Error checking clips for {login}: {e}")
+
+    # 2. Check latest VOD
+    query_vod = f"""
+    query {{
+      user(login: "{login}") {{
+        displayName
+        videos(first: 1, type: ARCHIVE) {{
+          edges {{
+            node {{
+              id
+              title
+              lengthSeconds
+            }}
+          }}
+        }}
+      }}
+    }}
+    """
+    try:
+        resp = requests.post("https://gql.twitch.tv/gql", headers=TWITCH_HEADERS, json={"query": query_vod}, timeout=10)
+        u_data = resp.json().get("data", {}).get("user", {})
+        display_name = u_data.get("displayName", login)
+        videos = u_data.get("videos", {}).get("edges", [])
+        if videos:
+            node = videos[0]["node"]
+            vod_id = node.get("id")
+            length_sec = node.get("lengthSeconds", 0)
+            if length_sec > 60:
+                return {
+                    "type": "vod",
+                    "id": f"vod_{vod_id}",
+                    "url": f"https://www.twitch.tv/videos/{vod_id}",
+                    "title": node.get("title", f"{display_name} GTA Stream"),
+                    "streamer": display_name
+                }
+    except Exception as e:
+        print(f"⚠️ Error checking VOD for {login}: {e}")
 
     return {
         "type": "channel",
         "id": f"channel_{login}",
         "url": f"https://www.twitch.tv/{login}",
-        "title": f"{login} Live Stream"
+        "title": f"{login} Live Stream",
+        "streamer": login
     }
 
 def run_streamclipper_on_source(source_url: str, out_dir: Path, max_clips: int = 1) -> list:
@@ -206,6 +344,7 @@ def run_streamclipper_on_source(source_url: str, out_dir: Path, max_clips: int =
         "--preset", "streamer-split-9x16",
         "--caption-style", "bold-pop",
         "--zoom", "medium",
+        "--min-score", "0",
         "--device", "cpu",
         "--whisper-model", "tiny",
         "--max-clips", str(max_clips),
@@ -319,21 +458,35 @@ def run_single_cycle(args, processed_history: set):
     """Runs a single discovery, clipping, and auto-publishing cycle"""
     if args.url:
         print(f"\n🎯 Direct URL mode: {args.url}")
-        target_name = "Streamer"
-        clips = run_streamclipper_on_source(args.url, WORK_DIR, max_clips=args.max_clips)
-        for c in clips:
-            clip_key = f"{args.url}_{Path(c['mp4']).name}"
-            if clip_key not in processed_history:
+        resolved_items = resolve_vod_or_url(args.url, limit=args.max_clips)
+        processed_any = False
+        for item in resolved_items:
+            clip_key = item.get("id") or item["url"]
+            if clip_key in processed_history:
+                print(f"⏭️ Item {clip_key} already processed. Skipping.")
+                continue
+
+            target_name = item.get("streamer") or "Streamer"
+            clean_dir_name = re.sub(r'[^a-zA-Z0-9_-]', '_', str(clip_key))
+            target_work_dir = WORK_DIR / clean_dir_name
+            target_work_dir.mkdir(parents=True, exist_ok=True)
+
+            clips = run_streamclipper_on_source(item["url"], target_work_dir, max_clips=1)
+            for c in clips:
                 publish_clip_multiplatform(
                     mp4_path=c["mp4"],
                     streamer_name=target_name,
-                    title=c["title"],
+                    title=item.get("title") or c["title"],
                     hook_headline=c["hook_headline"],
                     hashtags=c["hashtags"],
                     publish=args.publish
                 )
                 mark_clip_processed(clip_key)
                 processed_history.add(clip_key)
+                processed_any = True
+
+        if not processed_any:
+            print("ℹ️ All resolved clips from this URL have been processed previously.")
         return
 
     if args.auto_discover:
@@ -355,13 +508,18 @@ def run_single_cycle(args, processed_history: set):
 
             print(f"\nChecking source for {s['displayName']} (@{s['login']})...")
             source_info = get_streamer_source(s['login'])
+            if source_info.get("type") == "vod":
+                resolved_list = resolve_vod_or_url(source_info["url"], limit=1)
+                if resolved_list:
+                    source_info = resolved_list[0]
+
             source_key = source_info.get("id") or source_info.get("url")
 
             if source_key in processed_history:
                 print(f"   Source {source_key} already processed previously. Skipping.")
                 continue
 
-            print(f"🎯 Target Source [{source_info['type']}]: {source_info['title']} ({source_info['url']})")
+            print(f"🎯 Target Source [{source_info.get('type', 'clip')}]: {source_info['title']} ({source_info['url']})")
             streamer_work_dir = WORK_DIR / s['login']
             streamer_work_dir.mkdir(parents=True, exist_ok=True)
 
@@ -390,6 +548,16 @@ def run_single_cycle(args, processed_history: set):
         streamer_login = args.streamer.strip()
         print(f"\nTargeting specific streamer @{streamer_login}...")
         source_info = get_streamer_source(streamer_login)
+        if source_info.get("type") == "vod":
+            resolved_list = resolve_vod_or_url(source_info["url"], limit=1)
+            if resolved_list:
+                source_info = resolved_list[0]
+
+        source_key = source_info.get("id") or source_info.get("url")
+        if source_key in processed_history:
+            print(f"   Source {source_key} already processed previously. Skipping.")
+            return
+
         streamer_work_dir = WORK_DIR / streamer_login
         streamer_work_dir.mkdir(parents=True, exist_ok=True)
 
@@ -397,13 +565,13 @@ def run_single_cycle(args, processed_history: set):
         for c in clips:
             publish_clip_multiplatform(
                 mp4_path=c["mp4"],
-                streamer_name=streamer_login.upper(),
+                streamer_name=source_info.get("streamer", streamer_login.upper()),
                 title=c["title"],
                 hook_headline=c["hook_headline"],
                 hashtags=c["hashtags"],
                 publish=args.publish
             )
-            mark_clip_processed(f"{source_info['id']}_{Path(c['mp4']).name}")
+            mark_clip_processed(f"{source_key}_{Path(c['mp4']).name}")
 
 def main():
     parser = argparse.ArgumentParser(description="StreamClipper Autonomous Multi-Platform Pipeline")
